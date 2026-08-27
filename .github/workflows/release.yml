@@ -39,10 +39,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configurar Flutter 3.27.0
+      - name: Configurar Flutter (stable)
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.0'
           channel: 'stable'
           cache: true
 
@@ -67,6 +66,14 @@ jobs:
       - name: Análise estática
         run: flutter analyze --no-pub
         continue-on-error: true  # Não bloqueia o build por warnings
+
+      - name: Regenerar Gradle Wrapper
+        run: |
+          cd android
+          curl -L -o gradle-8.14-bin.zip https://services.gradle.org/distributions/gradle-8.14-bin.zip
+          unzip -q gradle-8.14-bin.zip
+          ./gradle-8.14/bin/gradle wrapper --gradle-version 8.14 --distribution-type all
+          rm -rf gradle-8.14 gradle-8.14-bin.zip
 
       - name: Compilar APK Release
         run: flutter build apk --release
