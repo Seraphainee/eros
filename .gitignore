@@ -1,0 +1,90 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/app/src/main/res/mipmap-*
+!android/app/src/main/res/mipmap-hdpi/ic_launcher.xml
+!android/app/src/main/res/mipmap-mdpi/ic_launcher.xml
+!android/app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+!android/app/src/main/res/mipmap-xxhdpi/ic_launcher.xml
+!android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.xml
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/Info.plist
+ios/Runner/Assets.xcassets/
+
+# macOS
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+macos/build/
+macos/.symlinks/
+
+# Web
+web/index.html
+web/manifest.json
+build/web/
+
+# Configs com segredos
+.env
+.env.*
+!.env.example
+*.env
+local.properties
+!local.properties.example
+google-services.json
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Test coverage
+coverage/
+
+# Build outputs extras
+*.apk
+*.aab
+*.ipa
+*.app
+*.dill
+
+# LiveKit / signaling (não commitados)
+certs/
+*.pem
+*.key
+*.crt
