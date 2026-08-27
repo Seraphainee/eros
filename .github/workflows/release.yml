@@ -39,9 +39,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Configurar Flutter (stable)
+      - name: Configurar Flutter 3.27.0
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.27.0'
           channel: 'stable'
           cache: true
 
