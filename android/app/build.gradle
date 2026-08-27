@@ -12,10 +12,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Necessário para flutter_local_notifications 17+ (usa APIs Java 8+).
+        coreLibraryDesugaringEnabled = true
     }
-
-    // Necessário para flutter_local_notifications 17+ (usa APIs Java 8+).
-    coreLibraryDesugaringEnabled = true
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
