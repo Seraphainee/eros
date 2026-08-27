@@ -70,10 +70,10 @@ jobs:
       - name: Regenerar Gradle Wrapper
         run: |
           cd android
-          curl -L -o gradle-8.14-bin.zip https://services.gradle.org/distributions/gradle-8.14-bin.zip
-          unzip -q gradle-8.14-bin.zip
-          ./gradle-8.14/bin/gradle wrapper --gradle-version 8.14 --distribution-type all
-          rm -rf gradle-8.14 gradle-8.14-bin.zip
+          curl -L -o gradle-9.1.0-bin.zip https://services.gradle.org/distributions/gradle-9.1.0-bin.zip
+          unzip -q gradle-9.1.0-bin.zip
+          ./gradle-9.1.0/bin/gradle wrapper --gradle-version 9.1.0 --distribution-type bin
+          rm -rf gradle-9.1.0 gradle-9.1.0-bin.zip
 
       - name: Compilar APK Release
         run: flutter build apk --release
