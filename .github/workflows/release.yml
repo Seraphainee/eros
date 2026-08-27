@@ -67,13 +67,14 @@ jobs:
         run: flutter analyze --no-pub
         continue-on-error: true  # Não bloqueia o build por warnings
 
-      - name: Regenerar Gradle Wrapper
+      - name: Instalar Gradle 9.1.0 e regenerar wrapper
         run: |
           cd android
           curl -L -o gradle-9.1.0-bin.zip https://services.gradle.org/distributions/gradle-9.1.0-bin.zip
           unzip -q gradle-9.1.0-bin.zip
           ./gradle-9.1.0/bin/gradle wrapper --gradle-version 9.1.0 --distribution-type bin
-          rm -rf gradle-9.1.0 gradle-9.1.0-bin.zip
+          # Mantém a pasta do Gradle: o flutter_tools a usa para resolver plugins
+          rm -f gradle-9.1.0-bin.zip
 
       - name: Compilar APK Release
         run: flutter build apk --release
