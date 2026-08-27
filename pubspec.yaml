@@ -19,7 +19,7 @@ dependencies:
   freezed: ^2.4.5
   json_serializable: ^6.7.1
   image_picker: ^1.0.7
-  flutter_local_notifications: ^16.3.2
+  flutter_local_notifications: ^17.0.0
   flutter_webrtc: ^1.2.1
   livekit_client: ^2.8.1
   http: ^1.2.0
