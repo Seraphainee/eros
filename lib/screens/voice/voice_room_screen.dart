@@ -172,7 +172,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> {
             ),
           ],
         ),
-        body: _buildBody(context, stateAsync, uiState),
+        body: _buildBody(context, stateAsync, uiState, currentUserId),
         bottomNavigationBar: _buildFooter(context, stateAsync, uiState),
       ),
     );
@@ -182,6 +182,7 @@ class _VoiceRoomScreenState extends ConsumerState<VoiceRoomScreen> {
     BuildContext context,
     AsyncValue<VoiceRoomState> stateAsync,
     VoiceRoomUiState uiState,
+    String? currentUserId,
   ) {
     if (uiState.isEntering) {
       return const LoadingIndicator(label: 'Entrando na sala...');

@@ -2,6 +2,10 @@
 ///
 /// Não é persistido — é construído pelo `VoiceRoomService` a partir
 /// dos eventos do `livekit_client.Room`.
+library;
+
+import 'voice_participant_model.dart';
+
 class VoiceRoomState {
   const VoiceRoomState({
     required this.connectionState,

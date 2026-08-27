@@ -31,6 +31,7 @@ import '../../core/utils/logger.dart';
 import '../../core/platform/voice_platform_channel.dart';
 import '../../models/voice_room_state_model.dart';
 import '../channels/channel_permission_service.dart';
+import '../permissions/permission_resolver.dart';
 import 'voice_permission_service.dart';
 import 'voice_reconnection_service.dart';
 import 'voice_signaling_service.dart';
@@ -43,6 +44,7 @@ class VoiceRoomService {
     VoiceSignalingService? signalingService,
     VoiceReconnectionService? reconnectionService,
     ChannelPermissionService? channelPermissionService,
+    PermissionResolver? permissionResolver,
     http.Client? httpClient,
     fb.FirebaseAuth? firebaseAuth,
     String? tokenServerUrl,

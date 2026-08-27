@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/channel_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/group_provider.dart';
 import '../../widgets/common/loading_indicator.dart';

@@ -23,7 +23,7 @@ class WebRtcClient {
   WebRtcClient();
 
   lk.Room? _room;
-  lk.EventsListener<lk.RoomEvent>? _listener;
+  final List<Function> _listenerCancels = [];
   final StreamController<VoiceRoomState> _stateController =
       StreamController<VoiceRoomState>.broadcast();
   VoiceRoomState _state = VoiceRoomState.initial;
@@ -50,23 +50,33 @@ class WebRtcClient {
       clearError: true,
     ));
 
-    final room = lk.Room(
-      const lk.RoomOptions(
-        adaptiveStream: true,
-        dynacast: true,
-      ),
-    );
+    final room = lk.Room();
 
     // Registra listeners.
-    _listener = room.createListener();
-    _listener!
-        .on<lk.ParticipantConnectedEvent>(_onParticipantConnected)
-        .on<lk.ParticipantDisconnectedEvent>(_onParticipantDisconnected)
-        .on<lk.ActiveSpeakersChangedEvent>(_onActiveSpeakersChanged)
-        .on<lk.ConnectionStateChangedEvent>(_onConnectionStateChanged)
-        .on<lk.RoomDisconnectedEvent>(_onRoomDisconnected)
-        .on<lk.TrackSubscribedEvent>(_onTrackSubscribed)
-        .on<lk.TrackUnsubscribedEvent>(_onTrackUnsubscribed);
+    _listenerCancels.add(
+      room.events.on<lk.ParticipantConnectedEvent>(_onParticipantConnected),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.ParticipantDisconnectedEvent>(_onParticipantDisconnected),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.ActiveSpeakersChangedEvent>(_onActiveSpeakersChanged),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.RoomReconnectingEvent>(_onRoomReconnecting),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.RoomConnectedEvent>(_onRoomConnected),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.RoomDisconnectedEvent>(_onRoomDisconnected),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.TrackSubscribedEvent>(_onTrackSubscribed),
+    );
+    _listenerCancels.add(
+      room.events.on<lk.TrackUnsubscribedEvent>(_onTrackUnsubscribed),
+    );
 
     try {
       await room.prepareConnection(url, token);
@@ -98,8 +108,10 @@ class WebRtcClient {
     } catch (e, st) {
       Logger.w('WebRtcClient.disconnect erro: $e', stackTrace: st);
     } finally {
-      _listener?.dispose();
-      _listener = null;
+      for (final cancel in _listenerCancels) {
+        await cancel();
+      }
+      _listenerCancels.clear();
       _room = null;
       _emit(_state.copyWith(
         connectionState: VoiceConnectionState.disconnected,
@@ -155,24 +167,27 @@ class WebRtcClient {
     Logger.d('WebRtcClient: track unsubscribed ${event.publication.kind}');
   }
 
-  void _onConnectionStateChanged(lk.ConnectionStateChangedEvent event) {
-    Logger.d('WebRtcClient: connection state -> ${event.state}');
-    if (event.state == lk.ConnectionState.reconnecting) {
-      _emit(_state.copyWith(
-        connectionState: VoiceConnectionState.reconnecting,
-      ));
-    } else if (event.state == lk.ConnectionState.connected) {
-      _emit(_state.copyWith(
-        connectionState: VoiceConnectionState.connected,
-      ));
-    }
+  void _onRoomReconnecting(lk.RoomReconnectingEvent event) {
+    Logger.d('WebRtcClient: room reconnecting');
+    _emit(_state.copyWith(
+      connectionState: VoiceConnectionState.reconnecting,
+    ));
+  }
+
+  void _onRoomConnected(lk.RoomConnectedEvent event) {
+    Logger.d('WebRtcClient: room connected');
+    _emit(_state.copyWith(
+      connectionState: VoiceConnectionState.connected,
+    ));
   }
 
   void _onRoomDisconnected(lk.RoomDisconnectedEvent event) {
     Logger.w('WebRtcClient: room disconnected (reason=${event.reason})');
     _room = null;
-    _listener?.dispose();
-    _listener = null;
+    for (final cancel in _listenerCancels) {
+      cancel();
+    }
+    _listenerCancels.clear();
     _emit(_state.copyWith(
       connectionState: VoiceConnectionState.disconnected,
       participants: const <VoiceParticipantModel>[],

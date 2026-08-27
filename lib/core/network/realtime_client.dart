@@ -19,12 +19,19 @@ class RealtimeClient {
     Query<Map<String, dynamic>> query, {
     Duration? throttle,
   }) {
-    Stream<QuerySnapshot<Map<String, dynamic>>> stream = query.snapshots(
-      includeMetadataChanges: true,
-    );
+    var stream = query.snapshots(includeMetadataChanges: true);
 
     if (throttle != null) {
-      stream = stream.throttle(throttle);
+      // Throttle simples: ignora eventos que chegarem antes do intervalo.
+      DateTime? lastEmitted;
+      stream = stream.where((snap) {
+        final now = DateTime.now();
+        if (lastEmitted == null || now.difference(lastEmitted!) >= throttle) {
+          lastEmitted = now;
+          return true;
+        }
+        return false;
+      });
     }
 
     return stream.handleError((error, stackTrace) {
