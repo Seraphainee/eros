@@ -24,10 +24,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   static const Color _deepPurple = Color(0xFF2A1B6E);
   static const Color _deepBlue = Color(0xFF1B2A63);
   static const Color _accent = Color(0xFF6C4DFF);
+
+  @override
+  void initState() {
+    super.initState();
+    // Pré-preenche o e-mail da última sessão se "Lembrar login" estava
+    // marcado — nunca a senha, por segurança.
+    final controller = ref.read(authControllerProvider.notifier);
+    if (controller.rememberLoginEnabled) {
+      final remembered = controller.rememberedEmail;
+      if (remembered != null && remembered.isNotEmpty) {
+        _emailCtrl.text = remembered;
+        _rememberMe = true;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -42,6 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await controller.signIn(
       email: _emailCtrl.text.trim(),
       password: _passwordCtrl.text,
+      rememberMe: _rememberMe,
     );
   }
 
@@ -151,7 +168,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           style: const TextStyle(color: Colors.redAccent),
                         ),
                       ],
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: <Widget>[
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Checkbox(
+                              value: _rememberMe,
+                              activeColor: _accent,
+                              side: BorderSide(color: Colors.white.withValues(alpha: 0.4)),
+                              onChanged: (value) => setState(() => _rememberMe = value ?? false),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => setState(() => _rememberMe = !_rememberMe),
+                            child: Text(
+                              'Lembrar login',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       Container(
                         height: 52,
                         decoration: BoxDecoration(
