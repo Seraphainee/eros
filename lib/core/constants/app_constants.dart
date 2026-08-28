@@ -10,6 +10,8 @@ class AppConstants {
   static const String kSessionUserEmailKey = 'session_user_email';
   static const String kSessionTokenKey = 'session_token';
   static const String kLastOpenedRouteKey = 'last_opened_route';
+  static const String kRememberLoginKey = 'remember_login_enabled';
+  static const String kRememberedEmailKey = 'remembered_login_email';
 
   // --- Timeouts ---
   static const Duration authTimeout = Duration(seconds: 30);
