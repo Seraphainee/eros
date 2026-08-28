@@ -89,9 +89,6 @@ class AuthController extends StateNotifier<AuthUiState> {
       );
       Logger.w('AuthController.signIn falhou: ${e.message}');
     } catch (e, st) {
-      // Rede fora, plugin não inicializado, ou qualquer erro que não veio
-      // como AppException — antes isso ficava sem tratamento e a tela
-      // nunca mostrava nada.
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Não foi possível entrar. Tente novamente.',
@@ -106,6 +103,8 @@ class AuthController extends StateNotifier<AuthUiState> {
     required String email,
     required String password,
     required String username,
+    String? displayName,
+    DateTime? birthDate,
   }) async {
     _manualOpInProgress = true;
     state = state.copyWith(isLoading: true, clearError: true);
@@ -114,6 +113,8 @@ class AuthController extends StateNotifier<AuthUiState> {
         email: email,
         password: password,
         username: username,
+        displayName: displayName,
+        birthDate: birthDate,
       );
       state = AuthUiState(isLoading: false, user: user, errorMessage: null);
     } on AppException catch (e) {
