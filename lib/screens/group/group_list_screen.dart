@@ -1,7 +1,7 @@
 /// `GroupListScreen` — lista de grupos do usuário.
 ///
 /// Mostra os grupos em que o usuário é membro, com FAB para
-/// criar novo grupo (placeholder para a Etapa 3.5).
+/// criar novo grupo.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +12,7 @@ import 'group_create_screen.dart';
 import 'group_detail_screen.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/app_avatar.dart';
+import '../profile/profile_screen.dart';
 
 class GroupListScreen extends ConsumerWidget {
   const GroupListScreen({super.key});
@@ -28,6 +29,24 @@ class GroupListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meus grupos'),
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
+            },
+            child: AppAvatar(
+              name: auth.user?.displayName ?? auth.user?.username ?? '?',
+              photoUrl: auth.user?.avatarUrl,
+              uid: userId,
+              size: 32,
+            ),
+          ),
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.logout),
