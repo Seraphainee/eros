@@ -11,6 +11,8 @@ class UserModel {
     required this.uid,
     required this.email,
     required this.username,
+    this.displayName,
+    this.birthDate,
     this.avatarUrl,
     required this.status,
     required this.createdAt,
@@ -22,8 +24,15 @@ class UserModel {
   /// E-mail (pode ser vazio se o login foi por provedor de terceiros sem e-mail).
   final String email;
 
-  /// Nome de usuário escolhido pelo usuário (único).
+  /// Nome de usuário escolhido pelo usuário (único, tipo @handle).
   final String username;
+
+  /// Nome de exibição (nome completo/apelido, separado do username).
+  final String? displayName;
+
+  /// Data de nascimento informada no cadastro (usada para checagem de idade
+  /// mínima — não é reexibida publicamente no perfil).
+  final DateTime? birthDate;
 
   /// URL do avatar (pode ser null até que seja carregado).
   final String? avatarUrl;
@@ -38,6 +47,8 @@ class UserModel {
     String? uid,
     String? email,
     String? username,
+    String? displayName,
+    DateTime? birthDate,
     String? avatarUrl,
     UserStatus? status,
     DateTime? createdAt,
@@ -46,6 +57,8 @@ class UserModel {
       uid: uid ?? this.uid,
       email: email ?? this.email,
       username: username ?? this.username,
+      displayName: displayName ?? this.displayName,
+      birthDate: birthDate ?? this.birthDate,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
@@ -56,6 +69,8 @@ class UserModel {
         'uid': uid,
         'email': email,
         'username': username,
+        'displayName': displayName,
+        'birthDate': birthDate?.toIso8601String(),
         'avatarUrl': avatarUrl,
         'status': status.name,
         'createdAt': createdAt.toIso8601String(),
@@ -65,6 +80,10 @@ class UserModel {
         uid: json['uid'] as String,
         email: json['email'] as String,
         username: json['username'] as String,
+        displayName: json['displayName'] as String?,
+        birthDate: json['birthDate'] == null
+            ? null
+            : DateTime.parse(json['birthDate'] as String),
         avatarUrl: json['avatarUrl'] as String?,
         status: UserStatus.values.firstWhere(
           (e) => e.name == json['status'],
@@ -80,14 +99,24 @@ class UserModel {
         other.uid == uid &&
         other.email == email &&
         other.username == username &&
+        other.displayName == displayName &&
+        other.birthDate == birthDate &&
         other.avatarUrl == avatarUrl &&
         other.status == status &&
         other.createdAt == createdAt;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(uid, email, username, avatarUrl, status, createdAt);
+  int get hashCode => Object.hash(
+        uid,
+        email,
+        username,
+        displayName,
+        birthDate,
+        avatarUrl,
+        status,
+        createdAt,
+      );
 
   @override
   String toString() => 'UserModel(uid: $uid, username: $username, status: $status)';
