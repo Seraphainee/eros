@@ -57,6 +57,18 @@ class Validators {
     return null;
   }
 
+  static String? validateSignature(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    if (value.length > 80) return 'Máximo de 80 caracteres.';
+    return null;
+  }
+
+  static String? validateBio(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    if (value.length > 300) return 'Máximo de 300 caracteres.';
+    return null;
+  }
+
   static String? validateMessage(String? value) {
     if (value == null || value.trim().isEmpty) return null;
     if (value.length > 4096) return 'Mensagem muito longa (máx. 4096 caracteres).';
