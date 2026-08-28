@@ -13,10 +13,29 @@ class Validators {
 
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) return 'Senha obrigatória.';
-    if (value.length < 8) return 'Senha precisa de pelo menos 8 caracteres.';
-    if (!value.contains(RegExp(r'[A-Z]'))) return 'Inclua uma letra maiúscula.';
-    if (!value.contains(RegExp(r'[a-z]'))) return 'Inclua uma letra minúscula.';
-    if (!value.contains(RegExp(r'[0-9]'))) return 'Inclua um número.';
+    if (value.length < 6) return 'Senha precisa de pelo menos 6 caracteres.';
+    return null;
+  }
+
+  static String? validateDisplayName(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Nome obrigatório.';
+    if (value.trim().length < 2) return 'Mínimo de 2 caracteres.';
+    if (value.trim().length > 40) return 'Máximo de 40 caracteres.';
+    return null;
+  }
+
+  /// Idade mínima exigida para uso do app.
+  static const int minAge = 18;
+
+  static String? validateBirthDate(DateTime? value) {
+    if (value == null) return 'Selecione sua data de nascimento.';
+    final now = DateTime.now();
+    var age = now.year - value.year;
+    final hasHadBirthdayThisYear = (now.month > value.month) ||
+        (now.month == value.month && now.day >= value.day);
+    if (!hasHadBirthdayThisYear) age -= 1;
+    if (age < minAge) return 'Você precisa ter $minAge anos ou mais.';
+    if (value.isAfter(now)) return 'Data inválida.';
     return null;
   }
 
