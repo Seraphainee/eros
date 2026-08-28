@@ -36,6 +36,13 @@ class AuthService {
   bool get isAuthenticated => _repository.currentState.isAuthenticated;
   String? get currentUserId => _session.currentUserId;
 
+  /// Converte o usuário Firebase bruto (vindo de [onAuthStateChange])
+  /// para o [UserModel] do app. Usado pelo AuthController quando uma
+  /// sessão já ativa é observada (cold start com cache, token
+  /// renovado em background) e ele precisa montar o estado sem passar
+  /// pelo fluxo de signIn/signUp.
+  UserModel toUserModel(fb.User user) => _toUserModel(user);
+
   /// Fluxo de login completo: autentica no Firebase e grava a sessão.
   Future<UserModel> signIn({
     required String email,
