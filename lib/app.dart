@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'bootstrap/app_bootstrap.dart';
 import 'core/voice_room_overlay_manager.dart';
+import 'core/widgets/app_splash_screen.dart';
 import 'providers/auth_provider.dart';
 import 'providers/group_provider.dart';
 import 'providers/voice_room_provider.dart';
@@ -114,7 +115,7 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
     if (state.isLoading) {
-      return const _BootSplash();
+      return const AppSplashScreen();
     }
     if (state.isAuthenticated) {
       return const HomeScreen();
@@ -126,19 +127,6 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
     }
     return LoginScreen(
       onSwitchToRegister: () => setState(() => _showRegister = true),
-    );
-  }
-}
-
-class _BootSplash extends StatelessWidget {
-  const _BootSplash();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
     );
   }
 }
