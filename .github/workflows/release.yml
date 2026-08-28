@@ -90,16 +90,23 @@ jobs:
           echo "=== APK files ==="
           find build -name "*.apk" -type f -exec ls -lh {} \;
 
-      - name: Upload do APK como artifact
+      - name: Upload do APK como artifact (apenas o APK universal)
         uses: actions/upload-artifact@v4
         with:
           name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload dos APKs por arquitetura + mapping (opcional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-extras
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
             build/app/outputs/mapping/release/mapping.txt
-          if-no-files-found: error
+          if-no-files-found: ignore
           retention-days: 90
 
       - name: Criar Release no GitHub
