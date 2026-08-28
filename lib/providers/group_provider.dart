@@ -11,6 +11,8 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/errors/app_exception.dart';
+import '../core/utils/logger.dart';
 import '../models/channel_model.dart';
 import '../models/group_model.dart';
 import '../services/channels/channel_permission_service.dart';
@@ -86,4 +88,95 @@ final StreamProviderFamily<GroupModel?, String> groupStreamProvider =
 final StreamProviderFamily<List<ChannelModel>, String> channelsStreamProvider =
     StreamProvider.family<List<ChannelModel>, String>((ref, groupId) {
   return ref.watch(channelServiceProvider).watchChannels(groupId);
+});
+
+// --- Criação de grupo (estado de UI) ---
+
+/// Estado da UI de criação de grupo.
+class GroupCreateState {
+  const GroupCreateState({
+    required this.isLoading,
+    required this.errorMessage,
+    required this.createdGroup,
+  });
+
+  final bool isLoading;
+  final String? errorMessage;
+  final GroupModel? createdGroup;
+
+  static const GroupCreateState initial = GroupCreateState(
+    isLoading: false,
+    errorMessage: null,
+    createdGroup: null,
+  );
+
+  GroupCreateState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    GroupModel? createdGroup,
+    bool clearError = false,
+  }) {
+    return GroupCreateState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      createdGroup: createdGroup ?? this.createdGroup,
+    );
+  }
+}
+
+class GroupCreateController extends StateNotifier<GroupCreateState> {
+  GroupCreateController(this._service) : super(GroupCreateState.initial);
+
+  final GroupService _service;
+
+  Future<void> createGroup({
+    required String name,
+    required String ownerId,
+    String? iconUrl,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final group = await _service.createGroup(
+        name: name,
+        ownerId: ownerId,
+        iconUrl: iconUrl,
+      );
+      state = GroupCreateState(
+        isLoading: false,
+        errorMessage: null,
+        createdGroup: group,
+      );
+    } on AppException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _friendlyMessage(e.message),
+      );
+      Logger.w('GroupCreateController.createGroup falhou: ${e.message}');
+    } catch (e, st) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Não foi possível criar o grupo. Tente novamente.',
+      );
+      Logger.e('GroupCreateController.createGroup erro inesperado', stackTrace: st);
+    }
+  }
+
+  String _friendlyMessage(String message) {
+    if (message.startsWith('invalid-group-name:')) {
+      return message.split(':').last.trim();
+    }
+    if (message.contains('missing-owner-id')) {
+      return 'Sessão inválida. Entre novamente.';
+    }
+    return 'Erro ao criar grupo. Tente novamente.';
+  }
+
+  /// Reseta o estado (ex: ao reabrir a tela de criação).
+  void reset() => state = GroupCreateState.initial;
+}
+
+final StateNotifierProvider<GroupCreateController, GroupCreateState>
+    groupCreateControllerProvider =
+    StateNotifierProvider<GroupCreateController, GroupCreateState>((ref) {
+  return GroupCreateController(ref.watch(groupServiceProvider));
 });
