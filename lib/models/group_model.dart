@@ -11,6 +11,7 @@
 class GroupModel {
   const GroupModel({
     required this.id,
+    required this.numericId,
     required this.name,
     required this.ownerId,
     this.iconUrl,
@@ -18,8 +19,13 @@ class GroupModel {
     this.memberCount = 1,
   });
 
-  /// ID do grupo (= `groups/{id}`).
+  /// ID do grupo (= `groups/{id}`). Usado internamente (Firestore doc id).
   final String id;
+
+  /// ID numérico único e sequencial exibido ao usuário (ex: 2800 → "#2800").
+  /// Gerado atomicamente na criação via `counters/groups` (ver GroupService).
+  /// Imutável após a criação.
+  final int numericId;
 
   /// Nome legível do grupo (3..64 chars, validado em service).
   final String name;
@@ -37,8 +43,12 @@ class GroupModel {
   /// Mantido pelo `MembershipService` em writes de add/remove.
   final int memberCount;
 
+  /// Representação exibida na UI, ex: "#2800".
+  String get displayId => '#$numericId';
+
   GroupModel copyWith({
     String? id,
+    int? numericId,
     String? name,
     String? ownerId,
     String? iconUrl,
@@ -47,6 +57,7 @@ class GroupModel {
   }) {
     return GroupModel(
       id: id ?? this.id,
+      numericId: numericId ?? this.numericId,
       name: name ?? this.name,
       ownerId: ownerId ?? this.ownerId,
       iconUrl: iconUrl ?? this.iconUrl,
@@ -57,6 +68,7 @@ class GroupModel {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
+        'numericId': numericId,
         'name': name,
         'ownerId': ownerId,
         'iconUrl': iconUrl,
@@ -66,6 +78,7 @@ class GroupModel {
 
   factory GroupModel.fromJson(Map<String, dynamic> json) => GroupModel(
         id: json['id'] as String,
+        numericId: (json['numericId'] as int?) ?? 0,
         name: json['name'] as String,
         ownerId: json['ownerId'] as String,
         iconUrl: json['iconUrl'] as String?,
@@ -78,6 +91,7 @@ class GroupModel {
     if (identical(this, other)) return true;
     return other is GroupModel &&
         other.id == id &&
+        other.numericId == numericId &&
         other.name == name &&
         other.ownerId == ownerId &&
         other.iconUrl == iconUrl &&
@@ -86,10 +100,10 @@ class GroupModel {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, ownerId, iconUrl, createdAt, memberCount);
+  int get hashCode => Object.hash(
+      id, numericId, name, ownerId, iconUrl, createdAt, memberCount);
 
   @override
   String toString() =>
-      'GroupModel(id: $id, name: $name, ownerId: $ownerId, memberCount: $memberCount)';
+      'GroupModel(id: $id, numericId: $numericId, name: $name, ownerId: $ownerId, memberCount: $memberCount)';
 }
