@@ -234,10 +234,26 @@ class AuthController extends StateNotifier<AuthUiState> {
         user: null,
         errorMessage: null,
       );
+      return;
     }
-    // Caso o usuário esteja presente, o carregamento do perfil completo
-    // é responsabilidade do profileService (Etapa 2). Aqui só refletimos
-    // o estado de autenticação.
+    // Sessão já ativa restaurada (cold start com cache do Firebase Auth,
+    // ou token renovado em background). Precisamos popular o state com
+    // o usuário — antes esse branch não fazia nada e o app ficava
+    // preso no splash para sempre nesse caso.
+    final authUser = _service.toUserModel(authState.user!);
+    _hydrateFromExistingSession(authUser);
+  }
+
+  Future<void> _hydrateFromExistingSession(UserModel authUser) async {
+    try {
+      final profile = await _profileService.ensureProfile(authUser);
+      state = AuthUiState(isLoading: false, user: profile, errorMessage: null);
+    } catch (e, st) {
+      // Não deixamos um erro aqui travar o app no splash: caímos para o
+      // usuário básico do Firebase Auth, sem o doc do Firestore.
+      Logger.e('AuthController._hydrateFromExistingSession falhou', stackTrace: st);
+      state = AuthUiState(isLoading: false, user: authUser, errorMessage: null);
+    }
   }
 
   @override
