@@ -70,7 +70,14 @@ class AuthController extends StateNotifier<AuthUiState> {
   final AuthService _service;
   late final StreamSubscription<AuthState> _sub;
 
+  // Enquanto uma operação explícita (signIn/signUp/signOut) está em
+  // andamento, o listener de auth state (_onAuthStateChange) não deve
+  // sobrescrever o resultado dela — evita que um evento "loading=false"
+  // vindo do repositório apague a mensagem de erro antes dela chegar à tela.
+  bool _manualOpInProgress = false;
+
   Future<void> signIn({required String email, required String password}) async {
+    _manualOpInProgress = true;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _service.signIn(email: email, password: password);
@@ -78,9 +85,20 @@ class AuthController extends StateNotifier<AuthUiState> {
     } on AppException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.message,
+        errorMessage: _friendlyMessage(e.message),
       );
       Logger.w('AuthController.signIn falhou: ${e.message}');
+    } catch (e, st) {
+      // Rede fora, plugin não inicializado, ou qualquer erro que não veio
+      // como AppException — antes isso ficava sem tratamento e a tela
+      // nunca mostrava nada.
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Não foi possível entrar. Tente novamente.',
+      );
+      Logger.e('AuthController.signIn erro inesperado', stackTrace: st);
+    } finally {
+      _manualOpInProgress = false;
     }
   }
 
@@ -89,6 +107,7 @@ class AuthController extends StateNotifier<AuthUiState> {
     required String password,
     required String username,
   }) async {
+    _manualOpInProgress = true;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _service.signUp(
@@ -100,9 +119,41 @@ class AuthController extends StateNotifier<AuthUiState> {
     } on AppException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.message,
+        errorMessage: _friendlyMessage(e.message),
       );
       Logger.w('AuthController.signUp falhou: ${e.message}');
+    } catch (e, st) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Não foi possível criar a conta. Tente novamente.',
+      );
+      Logger.e('AuthController.signUp erro inesperado', stackTrace: st);
+    } finally {
+      _manualOpInProgress = false;
+    }
+  }
+
+  /// Traduz códigos do Firebase (`e.code`) em mensagens legíveis.
+  String _friendlyMessage(String code) {
+    switch (code) {
+      case 'invalid-credential':
+      case 'wrong-password':
+      case 'user-not-found':
+        return 'E-mail ou senha incorretos.';
+      case 'email-already-in-use':
+        return 'Este e-mail já está cadastrado.';
+      case 'invalid-email':
+        return 'E-mail inválido.';
+      case 'weak-password':
+        return 'A senha é muito fraca (mínimo 6 caracteres).';
+      case 'network-request-failed':
+        return 'Sem conexão com a internet.';
+      case 'too-many-requests':
+        return 'Muitas tentativas. Tente novamente mais tarde.';
+      case 'user-disabled':
+        return 'Esta conta foi desativada.';
+      default:
+        return 'Erro ao autenticar ($code).';
     }
   }
 
@@ -137,6 +188,12 @@ class AuthController extends StateNotifier<AuthUiState> {
   }
 
   void _onAuthStateChange(AuthState authState) {
+    // Enquanto signIn/signUp/signOut estão rodando, é esse método (e seu
+    // try/catch) quem manda no state — o listener do stream só reage a
+    // mudanças de sessão que aconteçam fora desse fluxo (ex: token expirou
+    // em background, logout em outro dispositivo, cold start com cache).
+    if (_manualOpInProgress) return;
+
     if (authState.isLoading) {
       state = state.copyWith(isLoading: true);
       return;
