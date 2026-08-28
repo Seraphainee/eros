@@ -1,9 +1,10 @@
 /// `GroupService` — CRUD de grupos.
 ///
 /// Responsabilidades:
-/// - Criar grupo (com cargos Owner/Member default, canal #general,
-///   membership do owner).
+/// - Criar grupo (com ID numérico único, cargos Owner/Member default,
+///   canal #general, membership do owner).
 /// - Ler/observar grupo e listar grupos do usuário.
+/// - Buscar grupo por ID numérico (ex: "#2800").
 /// - Atualizar ícone (apenas owner).
 /// - Deletar grupo (apenas owner).
 ///
@@ -12,6 +13,7 @@
 /// - `groups/{groupId}/roles/{roleId}` (subcoleção de cargos)
 /// - `memberships/{groupId}_{userId}`
 /// - `channels/{channelId}` (canal #general)
+/// - `counters/groups` (contador atômico do numericId)
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -39,8 +41,35 @@ class GroupService {
   CollectionReference<Map<String, dynamic>> get _groupsRef =>
       _firestore.collection('groups');
 
+  /// Contador global que gera o próximo `numericId` de grupo.
+  /// Documento único `counters/groups` com campo `value` (int).
+  DocumentReference<Map<String, dynamic>> get _groupCounterRef =>
+      _firestore.collection('counters').doc('groups');
+
+  /// Ponto de partida dos IDs — evita números "curtos demais"
+  /// (mesmo espírito do `#2800` visto na referência RaidCall).
+  static const int _numericIdStart = 1000;
+
+  /// Gera o próximo `numericId` de forma atômica via transação.
+  ///
+  /// Se `counters/groups` não existir ainda, começa em
+  /// `_numericIdStart`. Caso contrário, incrementa `value` em 1 e
+  /// retorna o novo valor. A transação garante que duas criações
+  /// simultâneas nunca recebam o mesmo número.
+  Future<int> _nextNumericId() {
+    return _firestore.runTransaction<int>((tx) async {
+      final snap = await tx.get(_groupCounterRef);
+      final current = (snap.data()?['value'] as int?) ?? (_numericIdStart - 1);
+      final next = current + 1;
+      tx.set(_groupCounterRef, <String, dynamic>{'value': next});
+      return next;
+    });
+  }
+
   /// Cria um grupo, cargos Owner/Member, membership do owner e
-  /// canal #general. Tudo num batch para consistência.
+  /// canal #general. O `numericId` é reservado atomicamente ANTES
+  /// do batch (transação separada, pois `runTransaction` e `batch`
+  /// não podem ser combinados no mesmo commit).
   Future<GroupModel> createGroup({
     required String name,
     required String ownerId,
@@ -52,6 +81,16 @@ class GroupService {
     }
     if (ownerId.isEmpty) {
       throw const AuthException(message: 'missing-owner-id');
+    }
+
+    // Reserva o ID numérico único antes de criar o resto — se algo
+    // falhar depois, o número fica "queimado" (não reutilizado),
+    // igual ao comportamento padrão de contadores sequenciais.
+    final int numericId;
+    try {
+      numericId = await _nextNumericId();
+    } on FirebaseException catch (e, st) {
+      throw FirestoreException(message: e.message ?? e.code, stackTrace: st);
     }
 
     final groupRef = _groupsRef.doc();
@@ -67,6 +106,7 @@ class GroupService {
     final batch = _firestore.batch();
     batch.set(groupRef, <String, dynamic>{
       'id': groupId,
+      'numericId': numericId,
       'name': name,
       'ownerId': ownerId,
       'iconUrl': iconUrl,
@@ -109,9 +149,10 @@ class GroupService {
       throw FirestoreException(message: e.message ?? e.code, stackTrace: st);
     }
 
-    Logger.i('GroupService: grupo criado $groupId por $ownerId');
+    Logger.i('GroupService: grupo criado $groupId (#$numericId) por $ownerId');
     return GroupModel(
       id: groupId,
+      numericId: numericId,
       name: name,
       ownerId: ownerId,
       iconUrl: iconUrl,
@@ -129,6 +170,26 @@ class GroupService {
         'id': snap.id,
       });
     });
+  }
+
+  /// Busca um grupo pelo `numericId` (ex: usuário digitou "2800" na
+  /// busca ou colou um link `.../join?sid=2800`). Retorna `null` se
+  /// não encontrado. Usa `limit(1)` pois `numericId` é único.
+  Future<GroupModel?> findByNumericId(int numericId) async {
+    try {
+      final snap = await _groupsRef
+          .where('numericId', isEqualTo: numericId)
+          .limit(1)
+          .get();
+      if (snap.docs.isEmpty) return null;
+      final doc = snap.docs.first;
+      return GroupModel.fromJson(<String, dynamic>{
+        ...doc.data(),
+        'id': doc.id,
+      });
+    } on FirebaseException catch (e, st) {
+      throw FirestoreException(message: e.message ?? e.code, stackTrace: st);
+    }
   }
 
   /// Stream da lista de grupos em que o usuário é membro.
