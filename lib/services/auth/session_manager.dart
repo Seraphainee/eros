@@ -40,6 +40,16 @@ class SessionManager {
   bool get hasSession =>
       (currentUserId ?? '').isNotEmpty && (currentToken ?? '').isNotEmpty;
 
+  /// Indica se o usuário marcou "Lembrar login" na última vez que logou.
+  bool get rememberLoginEnabled =>
+      _prefs.getBool(AppConstants.kRememberLoginKey) ?? false;
+
+  /// E-mail lembrado para pré-preencher a tela de login após logout.
+  /// Só é relevante quando [rememberLoginEnabled] é true — nunca guarda
+  /// a senha, apenas o e-mail, por segurança.
+  String? get rememberedEmail =>
+      _prefs.getString(AppConstants.kRememberedEmailKey);
+
   /// Persiste a sessão recém-criada.
   Future<void> startSession({
     required String userId,
@@ -53,12 +63,32 @@ class SessionManager {
     _events.add(SessionEvent.started(userId));
   }
 
+  /// Salva a preferência de "Lembrar login" e o e-mail associado.
+  ///
+  /// Quando [remember] é false, apaga qualquer e-mail lembrado
+  /// anteriormente (a pessoa optou por não ser lembrada).
+  Future<void> setRememberLogin({
+    required bool remember,
+    required String email,
+  }) async {
+    await _prefs.setBool(AppConstants.kRememberLoginKey, remember);
+    if (remember) {
+      await _prefs.setString(AppConstants.kRememberedEmailKey, email);
+    } else {
+      await _prefs.remove(AppConstants.kRememberedEmailKey);
+    }
+  }
+
   /// Atualiza apenas o token (refresh periódico).
   Future<void> updateToken(String token) async {
     await _prefs.setString(AppConstants.kSessionTokenKey, token);
   }
 
   /// Limpa qualquer vestígio da sessão anterior.
+  ///
+  /// Mantém o e-mail lembrado (se [rememberLoginEnabled] estiver ativo)
+  /// para pré-preencher a tela de login — apenas a sessão ativa é
+  /// encerrada, não a preferência de "Lembrar login".
   Future<void> clear() async {
     final previousId = currentUserId;
     await _prefs.remove(AppConstants.kSessionUserIdKey);
