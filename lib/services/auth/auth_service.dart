@@ -74,6 +74,8 @@ class AuthService {
     required String email,
     required String password,
     required String username,
+    String? displayName,
+    DateTime? birthDate,
   }) async {
     try {
       final credential = await _repository.signUpWithEmail(
@@ -85,8 +87,9 @@ class AuthService {
         throw const AuthException(message: 'no-user-after-sign-up');
       }
 
-      // Atualiza o displayName para que o Firebase Auth já tenha o username.
-      await user.updateDisplayName(username);
+      // Atualiza o displayName para que o Firebase Auth já tenha o nome
+      // de exibição escolhido (fallback pro username se não informado).
+      await user.updateDisplayName(displayName ?? username);
 
       final token = await user.getIdToken();
       await _session.startSession(
@@ -94,7 +97,12 @@ class AuthService {
         email: user.email ?? email,
         token: token ?? '',
       );
-      return _toUserModel(user);
+      return _toUserModel(
+        user,
+        usernameOverride: username,
+        displayNameOverride: displayName,
+        birthDate: birthDate,
+      );
     } on AuthException {
       rethrow;
     } catch (e, st) {
@@ -154,11 +162,18 @@ class AuthService {
     }
   }
 
-  UserModel _toUserModel(fb.User user) {
+  UserModel _toUserModel(
+    fb.User user, {
+    String? usernameOverride,
+    String? displayNameOverride,
+    DateTime? birthDate,
+  }) {
     return UserModel(
       uid: user.uid,
       email: user.email ?? '',
-      username: user.displayName ?? user.email?.split('@').first ?? 'user',
+      username: usernameOverride ?? user.displayName ?? user.email?.split('@').first ?? 'user',
+      displayName: displayNameOverride ?? user.displayName,
+      birthDate: birthDate,
       avatarUrl: user.photoURL,
       status: UserStatus.online,
       createdAt: user.metadata.creationTime ?? DateTime.now(),
