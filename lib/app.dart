@@ -13,7 +13,8 @@ import 'core/voice_room_overlay_manager.dart';
 import 'providers/auth_provider.dart';
 import 'providers/group_provider.dart';
 import 'providers/voice_room_provider.dart';
-import 'screens/auth/login_placeholder.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'services/auth/auth_repository.dart';
 import 'services/auth/auth_service.dart';
@@ -98,11 +99,19 @@ class ErosApp extends ConsumerWidget {
 }
 
 /// Decide o que renderizar com base no estado de autenticação.
-class _AuthGate extends ConsumerWidget {
+class _AuthGate extends ConsumerStatefulWidget {
   const _AuthGate();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends ConsumerState<_AuthGate> {
+  // Controla qual tela de auth mostrar quando não autenticado.
+  bool _showRegister = true;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
     if (state.isLoading) {
       return const _BootSplash();
@@ -110,7 +119,14 @@ class _AuthGate extends ConsumerWidget {
     if (state.isAuthenticated) {
       return const HomeScreen();
     }
-    return const LoginPlaceholder();
+    if (_showRegister) {
+      return RegisterScreen(
+        onSwitchToLogin: () => setState(() => _showRegister = false),
+      );
+    }
+    return LoginScreen(
+      onSwitchToRegister: () => setState(() => _showRegister = true),
+    );
   }
 }
 
