@@ -108,7 +108,7 @@ class _AuthGate extends ConsumerStatefulWidget {
 
 class _AuthGateState extends ConsumerState<_AuthGate> {
   // Controla qual tela de auth mostrar quando não autenticado.
-  bool _showRegister = true;
+  bool _showRegister = false;
 
   @override
   Widget build(BuildContext context) {
