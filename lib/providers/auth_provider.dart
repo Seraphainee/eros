@@ -63,11 +63,12 @@ class AuthUiState {
 }
 
 class AuthController extends StateNotifier<AuthUiState> {
-  AuthController(this._service) : super(AuthUiState.initial) {
+  AuthController(this._service, this._sessionManager) : super(AuthUiState.initial) {
     _sub = _service.onAuthStateChange.listen(_onAuthStateChange);
   }
 
   final AuthService _service;
+  final SessionManager _sessionManager;
   late final StreamSubscription<AuthState> _sub;
 
   // Enquanto uma operação explícita (signIn/signUp/signOut) está em
@@ -76,11 +77,24 @@ class AuthController extends StateNotifier<AuthUiState> {
   // vindo do repositório apague a mensagem de erro antes dela chegar à tela.
   bool _manualOpInProgress = false;
 
-  Future<void> signIn({required String email, required String password}) async {
+  /// Se "Lembrar login" está habilitado (marcado na última vez que logou).
+  bool get rememberLoginEnabled => _sessionManager.rememberLoginEnabled;
+
+  /// E-mail lembrado para pré-preencher a tela de login (nunca a senha).
+  String? get rememberedEmail => _sessionManager.rememberedEmail;
+
+  Future<void> signIn({
+    required String email,
+    required String password,
+    bool rememberMe = false,
+  }) async {
     _manualOpInProgress = true;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _service.signIn(email: email, password: password);
+      // Só grava/atualiza a preferência após o login ter sucesso — nunca
+      // guardamos a senha, apenas o e-mail e a flag "lembrar".
+      await _sessionManager.setRememberLogin(remember: rememberMe, email: email);
       state = AuthUiState(isLoading: false, user: user, errorMessage: null);
     } on AppException catch (e) {
       state = state.copyWith(
@@ -89,6 +103,9 @@ class AuthController extends StateNotifier<AuthUiState> {
       );
       Logger.w('AuthController.signIn falhou: ${e.message}');
     } catch (e, st) {
+      // Rede fora, plugin não inicializado, ou qualquer erro que não veio
+      // como AppException — antes isso ficava sem tratamento e a tela
+      // nunca mostrava nada.
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Não foi possível entrar. Tente novamente.',
@@ -220,7 +237,10 @@ class AuthController extends StateNotifier<AuthUiState> {
 
 final StateNotifierProvider<AuthController, AuthUiState> authControllerProvider =
     StateNotifierProvider<AuthController, AuthUiState>((ref) {
-  return AuthController(ref.watch(authServiceProvider));
+  return AuthController(
+    ref.watch(authServiceProvider),
+    ref.watch(sessionManagerProvider),
+  );
 });
 
 /// Acesso de conveniência ao ID do usuário autenticado.
