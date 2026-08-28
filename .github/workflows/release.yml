@@ -77,13 +77,14 @@ jobs:
           rm -f gradle-9.1.0-bin.zip
 
       - name: Compilar APK Release
-        run: flutter build apk --release
-        env:
-          # Configurações de mock para o app compilar sem backend.
-          # Em produção, defina estas como secrets no GitHub.
-          VOICE_STUB: 'true'
-          LIVEKIT_URL: 'wss://stub.example.com'
-          FIREBASE_PROJECT_ID: 'eros-dev'
+        run: |
+          flutter build apk --release \
+            --dart-define=VOICE_STUB=true \
+            --dart-define=LIVEKIT_URL=wss://stub.example.com \
+            --dart-define=FIREBASE_PROJECT_ID=eros-9343d \
+            --dart-define=FIREBASE_API_KEY=AIzaSyBB-FtnYFLg9jQkp5FA5sn1_p451kfeD8c \
+            --dart-define=FIREBASE_APP_ID=1:483890865210:android:6295d83c7b6f33c67a8103 \
+            --dart-define=FIREBASE_MESSAGING_SENDER_ID=483890865210
 
       - name: Listar artefatos gerados
         run: |
@@ -96,17 +97,6 @@ jobs:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload dos APKs por arquitetura + mapping (opcional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-extras
-          path: |
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/mapping/release/mapping.txt
-          if-no-files-found: ignore
           retention-days: 90
 
       - name: Criar Release no GitHub
