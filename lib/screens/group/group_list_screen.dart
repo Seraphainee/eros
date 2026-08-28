@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/group_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/group_provider.dart';
+import 'group_create_screen.dart';
 import 'group_detail_screen.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/app_avatar.dart';
@@ -57,9 +58,10 @@ class GroupListScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Criar grupo'),
         onPressed: () {
-          // Etapa 3.5: tela de criação de grupo.
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Criação de grupo em breve.')),
+          Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (_) => const GroupCreateScreen(),
+            ),
           );
         },
       ),
