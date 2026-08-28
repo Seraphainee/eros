@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "483890865210",
+    "project_id": "eros-9343d",
+    "storage_bucket": "eros-9343d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483890865210:android:6295d83c7b6f33c67a8103",
+        "android_client_info": {
+          "package_name": "com.eros.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBB-FtnYFLg9jQkp5FA5sn1_p451kfeD8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
