@@ -14,6 +14,8 @@ class UserModel {
     this.displayName,
     this.birthDate,
     this.avatarUrl,
+    this.signature,
+    this.bio,
     required this.status,
     required this.createdAt,
   });
@@ -35,7 +37,19 @@ class UserModel {
   final DateTime? birthDate;
 
   /// URL do avatar (pode ser null até que seja carregado).
+  ///
+  /// TODO: upload real ainda não implementado — depende de
+  /// `avatar_upload_service.dart` + `firebase_storage` (a definir
+  /// em etapa futura). Por enquanto este campo só é lido/gravado
+  /// como texto (URL) quando já existir.
   final String? avatarUrl;
+
+  /// Assinatura curta exibida logo abaixo do nome no perfil
+  /// (equivalente a uma "bio de uma linha").
+  final String? signature;
+
+  /// Descrição longa ("Sobre") exibida na tela de perfil.
+  final String? bio;
 
   /// Estado do usuário (online, offline, inRoom, etc.).
   final UserStatus status;
@@ -50,6 +64,8 @@ class UserModel {
     String? displayName,
     DateTime? birthDate,
     String? avatarUrl,
+    String? signature,
+    String? bio,
     UserStatus? status,
     DateTime? createdAt,
   }) {
@@ -60,6 +76,8 @@ class UserModel {
       displayName: displayName ?? this.displayName,
       birthDate: birthDate ?? this.birthDate,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      signature: signature ?? this.signature,
+      bio: bio ?? this.bio,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -72,6 +90,8 @@ class UserModel {
         'displayName': displayName,
         'birthDate': birthDate?.toIso8601String(),
         'avatarUrl': avatarUrl,
+        'signature': signature,
+        'bio': bio,
         'status': status.name,
         'createdAt': createdAt.toIso8601String(),
       };
@@ -85,6 +105,8 @@ class UserModel {
             ? null
             : DateTime.parse(json['birthDate'] as String),
         avatarUrl: json['avatarUrl'] as String?,
+        signature: json['signature'] as String?,
+        bio: json['bio'] as String?,
         status: UserStatus.values.firstWhere(
           (e) => e.name == json['status'],
           orElse: () => UserStatus.offline,
@@ -102,6 +124,8 @@ class UserModel {
         other.displayName == displayName &&
         other.birthDate == birthDate &&
         other.avatarUrl == avatarUrl &&
+        other.signature == signature &&
+        other.bio == bio &&
         other.status == status &&
         other.createdAt == createdAt;
   }
@@ -114,6 +138,8 @@ class UserModel {
         displayName,
         birthDate,
         avatarUrl,
+        signature,
+        bio,
         status,
         createdAt,
       );
