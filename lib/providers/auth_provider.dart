@@ -19,6 +19,8 @@ import '../models/user_model.dart';
 import '../services/auth/auth_repository.dart';
 import '../services/auth/auth_service.dart';
 import '../services/auth/session_manager.dart';
+import '../services/profile/profile_service.dart';
+import 'profile_provider.dart';
 
 /// Provider base — é sobrescrito em `app.dart` após o bootstrap.
 final Provider<AuthService> authServiceProvider = Provider<AuthService>((ref) {
@@ -63,12 +65,15 @@ class AuthUiState {
 }
 
 class AuthController extends StateNotifier<AuthUiState> {
-  AuthController(this._service, this._sessionManager) : super(AuthUiState.initial) {
+  AuthController(this._service, this._sessionManager, [ProfileService? profileService])
+      : _profileService = profileService ?? ProfileService(),
+        super(AuthUiState.initial) {
     _sub = _service.onAuthStateChange.listen(_onAuthStateChange);
   }
 
   final AuthService _service;
   final SessionManager _sessionManager;
+  final ProfileService _profileService;
   late final StreamSubscription<AuthState> _sub;
 
   // Enquanto uma operação explícita (signIn/signUp/signOut) está em
@@ -95,7 +100,11 @@ class AuthController extends StateNotifier<AuthUiState> {
       // Só grava/atualiza a preferência após o login ter sucesso — nunca
       // guardamos a senha, apenas o e-mail e a flag "lembrar".
       await _sessionManager.setRememberLogin(remember: rememberMe, email: email);
-      state = AuthUiState(isLoading: false, user: user, errorMessage: null);
+      // Garante que o documento users/{uid} exista no Firestore (pode
+      // não existir ainda em contas antigas criadas antes do
+      // ProfileService, ou em cold start com cache do Firebase Auth).
+      final profile = await _profileService.ensureProfile(user);
+      state = AuthUiState(isLoading: false, user: profile, errorMessage: null);
     } on AppException catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -133,7 +142,10 @@ class AuthController extends StateNotifier<AuthUiState> {
         displayName: displayName,
         birthDate: birthDate,
       );
-      state = AuthUiState(isLoading: false, user: user, errorMessage: null);
+      // Cria o documento users/{uid} no Firestore — até aqui só existia
+      // o esqueleto no Firebase Auth (ver comentário em auth_service.dart).
+      final profile = await _profileService.ensureProfile(user);
+      state = AuthUiState(isLoading: false, user: profile, errorMessage: null);
     } on AppException catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -240,6 +252,7 @@ final StateNotifierProvider<AuthController, AuthUiState> authControllerProvider 
   return AuthController(
     ref.watch(authServiceProvider),
     ref.watch(sessionManagerProvider),
+    ref.watch(profileServiceProvider),
   );
 });
 
