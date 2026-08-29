@@ -3,6 +3,8 @@
 /// Documento em `groups/{groupId}`. Apenas metadados públicos do grupo
 /// — membros e cargos ficam em coleções separadas (`memberships` e
 /// `groups/{groupId}/roles`).
+import '../core/constants/ranking_constants.dart';
+
 class GroupModel {
   const GroupModel({
     required this.id,
