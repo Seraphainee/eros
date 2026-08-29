@@ -37,6 +37,8 @@ class ChannelService {
     required String name,
     required ChannelType type,
     required String actingUserId,
+    VoiceMode voiceMode = VoiceMode.free,
+    ChannelVisibility visibility = ChannelVisibility.public,
   }) async {
     final cleaned = name.trim().toLowerCase();
     if (cleaned.isEmpty) {
@@ -78,6 +80,8 @@ class ChannelService {
       type: type,
       order: nextOrder,
       permissionOverrides: 0,
+      voiceMode: voiceMode,
+      visibility: visibility,
       createdAt: DateTime.now(),
     );
     try {
