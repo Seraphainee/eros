@@ -589,3 +589,29 @@ class _GroupOptionsMenuButton extends ConsumerWidget {
           value: 'reorder_channels',
           child: _MenuRow(icon: Icons.reorder, label: 'Ordem dos canais'),
         ),
+        PopupMenuItem<String>(
+          value: 'settings',
+          child: _MenuRow(icon: Icons.tune, label: 'Configurações do grupo'),
+        ),
+      ],
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, size: 20),
+        const SizedBox(width: 12),
+        Text(label),
+      ],
+    );
+  }
+}
