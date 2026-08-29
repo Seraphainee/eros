@@ -8,15 +8,24 @@
 ///   (`connect` / `disconnect` / `setMuted`).
 /// - `voiceRoomUiStateProvider` — estado de UI (carregando entrada, erro,
 ///   mic em transição).
+/// - `presenceServiceProvider` — presença em Firestore (contagem de
+///   pessoas por canal, visível mesmo para quem não está na chamada).
+/// - `channelPresenceProvider` — stream de userIds presentes num canal.
 ///
-/// A `VoiceRoomScreen` consome o stream e o controller.
+/// A `VoiceRoomScreen` consome o stream e o controller. A
+/// `GroupDetailScreen` consome `channelPresenceProvider` para mostrar
+/// a contagem "N" ao lado de cada canal de voz.
 library;
+
+import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/errors/app_exception.dart';
 import '../core/utils/logger.dart';
 import '../models/voice_room_state_model.dart';
+import '../providers/auth_provider.dart';
+import '../services/presence/presence_service.dart';
 import '../services/voice/voice_room_service.dart';
 
 /// Service da sala de voz.
@@ -29,6 +38,12 @@ final Provider<VoiceRoomService> voiceRoomServiceProvider =
   return VoiceRoomService();
 });
 
+/// Service de presença (Firestore) — singleton compartilhado.
+final Provider<PresenceService> presenceServiceProvider =
+    Provider<PresenceService>((ref) {
+  return PresenceService();
+});
+
 /// Stream do estado de uma sala por `channelId`.
 final StreamProviderFamily<VoiceRoomState, String>
     voiceRoomStateStreamProvider =
@@ -38,6 +53,21 @@ final StreamProviderFamily<VoiceRoomState, String>
   return service.state
       .where((s) => s.channelId == channelId || s.channelId == null)
       .distinct();
+});
+
+/// Stream dos `userId` presentes (não-stale) num canal de voz.
+/// Fonte usada pela `GroupDetailScreen` para mostrar contagem e
+/// avatares de quem está no canal, mesmo sem estar conectado nele.
+final StreamProviderFamily<List<String>, String> channelPresenceProvider =
+    StreamProvider.family<List<String>, String>((ref, channelId) {
+  return ref.watch(presenceServiceProvider).watchChannelPresence(channelId);
+});
+
+/// Stream de quantos membros de um grupo estão online agora.
+/// Usado no badge "N Online" do card do servidor.
+final StreamProviderFamily<int, String> groupOnlineCountProvider =
+    StreamProvider.family<int, String>((ref, groupId) {
+  return ref.watch(presenceServiceProvider).watchGroupOnlineCount(groupId);
 });
 
 /// Estado de UI da sala de voz (separado do estado técnico do WebRTC).
@@ -76,12 +106,17 @@ class VoiceRoomUiState {
 }
 
 class VoiceRoomController extends StateNotifier<VoiceRoomUiState> {
-  VoiceRoomController(this._service) : super(const VoiceRoomUiState());
+  VoiceRoomController(this._service, this._presence, this._ref)
+      : super(const VoiceRoomUiState());
 
   final VoiceRoomService _service;
+  final PresenceService _presence;
+  final Ref _ref;
+  Timer? _heartbeatTimer;
 
   /// Entra na sala. Idempotente: se já está conectado em outro
-  /// canal, desconecta antes.
+  /// canal, desconecta antes. Também registra presença no Firestore
+  /// (visível para quem não está na chamada) e inicia o heartbeat.
   Future<void> connect({
     required String groupId,
     required String channelId,
@@ -93,9 +128,20 @@ class VoiceRoomController extends StateNotifier<VoiceRoomUiState> {
       if (_service.currentState.isInRoom &&
           _service.currentState.channelId != channelId) {
         await _service.disconnect();
+        _stopHeartbeat();
       }
       await _service.connect(groupId: groupId, channelId: channelId);
       state = state.copyWith(isEntering: false);
+
+      final uid = _ref.read(currentUserIdProvider);
+      if (uid != null) {
+        await _presence.joinVoiceChannel(
+          userId: uid,
+          groupId: groupId,
+          channelId: channelId,
+        );
+        _startHeartbeat(uid);
+      }
     } on AppException catch (e) {
       Logger.w('VoiceRoomController.connect: ${e.message}');
       state = state.copyWith(isEntering: false, errorMessage: e.message);
@@ -113,6 +159,11 @@ class VoiceRoomController extends StateNotifier<VoiceRoomUiState> {
   Future<void> disconnect() async {
     try {
       await _service.disconnect();
+      _stopHeartbeat();
+      final uid = _ref.read(currentUserIdProvider);
+      if (uid != null) {
+        await _presence.leaveVoiceChannel(uid);
+      }
     } catch (e) {
       Logger.w('VoiceRoomController.disconnect: $e');
     } finally {
@@ -139,10 +190,35 @@ class VoiceRoomController extends StateNotifier<VoiceRoomUiState> {
   void clearError() {
     state = state.copyWith(clearError: true);
   }
+
+  /// Mantém `lastSeen` fresco no Firestore a cada 20s enquanto
+  /// conectado, para que outros usuários continuem vendo a
+  /// contagem correta sem depender de um processo de servidor.
+  void _startHeartbeat(String uid) {
+    _stopHeartbeat();
+    _heartbeatTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+      _presence.heartbeat(uid);
+    });
+  }
+
+  void _stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _stopHeartbeat();
+    super.dispose();
+  }
 }
 
 final StateNotifierProvider<VoiceRoomController, VoiceRoomUiState>
     voiceRoomControllerProvider =
     StateNotifierProvider<VoiceRoomController, VoiceRoomUiState>((ref) {
-  return VoiceRoomController(ref.watch(voiceRoomServiceProvider));
+  return VoiceRoomController(
+    ref.watch(voiceRoomServiceProvider),
+    ref.watch(presenceServiceProvider),
+    ref,
+  );
 });
