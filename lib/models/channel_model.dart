@@ -15,6 +15,36 @@
 /// models desta etapa.
 enum ChannelType { text, voice }
 
+/// Quem pode falar em um canal de voz (irrelevante para canais de
+/// texto). Réplica do seletor "MODO DE VOZ" da tela de criação.
+enum VoiceMode {
+  /// Qualquer membro pode ligar o microfone livremente.
+  free,
+
+  /// Só admins/moderadores podem falar; demais ficam mutados.
+  admin,
+
+  /// Membros entram numa fila e falam um de cada vez.
+  queue,
+}
+
+/// Quem pode ver/entrar no canal. Réplica do seletor "Visibilidade"
+/// da tela de criação.
+enum ChannelVisibility {
+  /// Visível e acessível a qualquer membro do grupo.
+  public,
+
+  /// Visível apenas para membros com um cargo específico
+  /// (refinamento fica a cargo do `permissionOverrides`).
+  membersOnly,
+
+  /// Membros podem ver mas só administradores podem postar/falar.
+  announcementsOnly,
+
+  /// Oculto para quem não tiver acesso explícito.
+  private,
+}
+
 class ChannelModel {
   const ChannelModel({
     required this.id,
@@ -23,6 +53,8 @@ class ChannelModel {
     required this.type,
     required this.order,
     this.permissionOverrides = 0,
+    this.voiceMode = VoiceMode.free,
+    this.visibility = ChannelVisibility.public,
     required this.createdAt,
   });
 
@@ -46,6 +78,12 @@ class ChannelModel {
   /// Default 0 = segue o bitmask do cargo.
   final int permissionOverrides;
 
+  /// Quem pode falar (apenas relevante quando [type] é voz).
+  final VoiceMode voiceMode;
+
+  /// Quem pode ver/acessar o canal.
+  final ChannelVisibility visibility;
+
   /// Quando o canal foi criado.
   final DateTime createdAt;
 
@@ -59,6 +97,8 @@ class ChannelModel {
     ChannelType? type,
     int? order,
     int? permissionOverrides,
+    VoiceMode? voiceMode,
+    ChannelVisibility? visibility,
     DateTime? createdAt,
   }) {
     return ChannelModel(
@@ -68,6 +108,8 @@ class ChannelModel {
       type: type ?? this.type,
       order: order ?? this.order,
       permissionOverrides: permissionOverrides ?? this.permissionOverrides,
+      voiceMode: voiceMode ?? this.voiceMode,
+      visibility: visibility ?? this.visibility,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -79,6 +121,8 @@ class ChannelModel {
         'type': type.name,
         'order': order,
         'permissionOverrides': permissionOverrides,
+        'voiceMode': voiceMode.name,
+        'visibility': visibility.name,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -92,6 +136,14 @@ class ChannelModel {
         ),
         order: (json['order'] as int?) ?? 0,
         permissionOverrides: (json['permissionOverrides'] as int?) ?? 0,
+        voiceMode: VoiceMode.values.firstWhere(
+          (e) => e.name == json['voiceMode'],
+          orElse: () => VoiceMode.free,
+        ),
+        visibility: ChannelVisibility.values.firstWhere(
+          (e) => e.name == json['visibility'],
+          orElse: () => ChannelVisibility.public,
+        ),
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
 
@@ -105,12 +157,14 @@ class ChannelModel {
         other.type == type &&
         other.order == order &&
         other.permissionOverrides == permissionOverrides &&
+        other.voiceMode == voiceMode &&
+        other.visibility == visibility &&
         other.createdAt == createdAt;
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, groupId, name, type, order, permissionOverrides, createdAt);
+  int get hashCode => Object.hash(id, groupId, name, type, order,
+      permissionOverrides, voiceMode, visibility, createdAt);
 
   @override
   String toString() =>
