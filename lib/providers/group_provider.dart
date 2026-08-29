@@ -234,3 +234,104 @@ class GroupLikeController extends AsyncNotifier<void> {
 final AsyncNotifierProvider<GroupLikeController, void>
     groupLikeControllerProvider =
     AsyncNotifierProvider<GroupLikeController, void>(GroupLikeController.new);
+
+// --- Criação de canal (estado de UI) ---
+
+/// Estado da UI de criação de canal.
+class ChannelCreateState {
+  const ChannelCreateState({
+    required this.isLoading,
+    required this.errorMessage,
+    required this.createdChannel,
+  });
+
+  final bool isLoading;
+  final String? errorMessage;
+  final ChannelModel? createdChannel;
+
+  static const ChannelCreateState initial = ChannelCreateState(
+    isLoading: false,
+    errorMessage: null,
+    createdChannel: null,
+  );
+
+  ChannelCreateState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    ChannelModel? createdChannel,
+    bool clearError = false,
+  }) {
+    return ChannelCreateState(
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      createdChannel: createdChannel ?? this.createdChannel,
+    );
+  }
+}
+
+class ChannelCreateController extends StateNotifier<ChannelCreateState> {
+  ChannelCreateController(this._service) : super(ChannelCreateState.initial);
+
+  final ChannelService _service;
+
+  Future<void> createChannel({
+    required String groupId,
+    required String name,
+    required ChannelType type,
+    required String actingUserId,
+    VoiceMode voiceMode = VoiceMode.free,
+    ChannelVisibility visibility = ChannelVisibility.public,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final channel = await _service.createChannel(
+        groupId: groupId,
+        name: name,
+        type: type,
+        actingUserId: actingUserId,
+        voiceMode: voiceMode,
+        visibility: visibility,
+      );
+      state = ChannelCreateState(
+        isLoading: false,
+        errorMessage: null,
+        createdChannel: channel,
+      );
+    } on AppException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _friendlyMessage(e.message),
+      );
+      Logger.w('ChannelCreateController.createChannel falhou: ${e.message}');
+    } catch (e, st) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Não foi possível criar o canal. Tente novamente.',
+      );
+      Logger.e('ChannelCreateController.createChannel erro inesperado',
+          stackTrace: st);
+    }
+  }
+
+  String _friendlyMessage(String message) {
+    if (message.contains('invalid-channel-name')) {
+      return 'Digite um nome para o canal.';
+    }
+    if (message.contains('channel-name-taken')) {
+      return 'Já existe um canal com esse nome neste grupo.';
+    }
+    if (message.contains('no-manage-channels-permission')) {
+      return 'Você não tem permissão para criar canais neste grupo.';
+    }
+    return 'Erro ao criar canal. Tente novamente.';
+  }
+
+  /// Reseta o estado (ex: ao reabrir a tela de criação).
+  void reset() => state = ChannelCreateState.initial;
+}
+
+final StateNotifierProvider<ChannelCreateController, ChannelCreateState>
+    channelCreateControllerProvider =
+    StateNotifierProvider<ChannelCreateController, ChannelCreateState>((ref) {
+  return ChannelCreateController(ref.watch(channelServiceProvider));
+});
