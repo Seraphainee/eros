@@ -3,11 +3,6 @@
 /// Documento em `groups/{groupId}`. Apenas metadados públicos do grupo
 /// — membros e cargos ficam em coleções separadas (`memberships` e
 /// `groups/{groupId}/roles`).
-///
-/// Implementação manual imutável nesta etapa; quando o gerador
-/// `freezed`/`json_serializable` rodar, o arquivo será migrado
-/// preservando a API pública (`copyWith`, `toJson`/`fromJson`,
-/// `==`/`hashCode`).
 class GroupModel {
   const GroupModel({
     required this.id,
@@ -15,36 +10,47 @@ class GroupModel {
     required this.name,
     required this.ownerId,
     this.iconUrl,
+    this.slogan,
     required this.createdAt,
     this.memberCount = 1,
+    this.contributionPoints = 0,
+    this.likeCount = 0,
   });
 
-  /// ID do grupo (= `groups/{id}`). Usado internamente (Firestore doc id).
   final String id;
-
-  /// ID numérico único e sequencial exibido ao usuário (ex: 2800 → "#2800").
-  /// Gerado atomicamente na criação via `counters/groups` (ver GroupService).
-  /// Imutável após a criação.
   final int numericId;
-
-  /// Nome legível do grupo (3..64 chars, validado em service).
   final String name;
-
-  /// UID do dono (não muda após a criação; usado pelo `PermissionResolver`).
   final String ownerId;
-
-  /// URL do ícone no Firebase Storage (opcional).
   final String? iconUrl;
 
-  /// Quando o grupo foi criado.
-  final DateTime createdAt;
+  /// Frase curta exibida abaixo do nome (equivalente ao "SLOGAN" da
+  /// tela de Configurações do grupo). Opcional.
+  final String? slogan;
 
-  /// Cache de contagem de membros para evitar `count()` em queries.
-  /// Mantido pelo `MembershipService` em writes de add/remove.
+  final DateTime createdAt;
   final int memberCount;
+
+  /// Pontos acumulados pelo grupo (voz + mensagens + eventos),
+  /// somados via `RankingConstants`. Alimenta `level` e `progress`.
+  final int contributionPoints;
+
+  /// Contagem de curtidas (cache; a fonte de verdade é a subcoleção
+  /// `groups/{groupId}/likes/{userId}`, mantida pelo `GroupService`).
+  final int likeCount;
 
   /// Representação exibida na UI, ex: "#2800".
   String get displayId => '#$numericId';
+
+  /// Nível atual do grupo, derivado de [contributionPoints].
+  int get level => RankingConstants.levelForPoints(contributionPoints);
+
+  /// Pontos que faltam para o próximo nível (null se nível máximo).
+  int? get pointsToNextLevel =>
+      RankingConstants.pointsToNextLevel(contributionPoints);
+
+  /// Progresso (0.0..1.0) dentro do nível atual.
+  double get levelProgress =>
+      RankingConstants.progressInLevel(contributionPoints);
 
   GroupModel copyWith({
     String? id,
@@ -52,8 +58,11 @@ class GroupModel {
     String? name,
     String? ownerId,
     String? iconUrl,
+    String? slogan,
     DateTime? createdAt,
     int? memberCount,
+    int? contributionPoints,
+    int? likeCount,
   }) {
     return GroupModel(
       id: id ?? this.id,
@@ -61,8 +70,11 @@ class GroupModel {
       name: name ?? this.name,
       ownerId: ownerId ?? this.ownerId,
       iconUrl: iconUrl ?? this.iconUrl,
+      slogan: slogan ?? this.slogan,
       createdAt: createdAt ?? this.createdAt,
       memberCount: memberCount ?? this.memberCount,
+      contributionPoints: contributionPoints ?? this.contributionPoints,
+      likeCount: likeCount ?? this.likeCount,
     );
   }
 
@@ -72,8 +84,11 @@ class GroupModel {
         'name': name,
         'ownerId': ownerId,
         'iconUrl': iconUrl,
+        'slogan': slogan,
         'createdAt': createdAt.toIso8601String(),
         'memberCount': memberCount,
+        'contributionPoints': contributionPoints,
+        'likeCount': likeCount,
       };
 
   factory GroupModel.fromJson(Map<String, dynamic> json) => GroupModel(
@@ -82,8 +97,11 @@ class GroupModel {
         name: json['name'] as String,
         ownerId: json['ownerId'] as String,
         iconUrl: json['iconUrl'] as String?,
+        slogan: json['slogan'] as String?,
         createdAt: DateTime.parse(json['createdAt'] as String),
         memberCount: (json['memberCount'] as int?) ?? 1,
+        contributionPoints: (json['contributionPoints'] as int?) ?? 0,
+        likeCount: (json['likeCount'] as int?) ?? 0,
       );
 
   @override
@@ -95,15 +113,18 @@ class GroupModel {
         other.name == name &&
         other.ownerId == ownerId &&
         other.iconUrl == iconUrl &&
+        other.slogan == slogan &&
         other.createdAt == createdAt &&
-        other.memberCount == memberCount;
+        other.memberCount == memberCount &&
+        other.contributionPoints == contributionPoints &&
+        other.likeCount == likeCount;
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, numericId, name, ownerId, iconUrl, createdAt, memberCount);
+  int get hashCode => Object.hash(id, numericId, name, ownerId, iconUrl,
+      slogan, createdAt, memberCount, contributionPoints, likeCount);
 
   @override
   String toString() =>
-      'GroupModel(id: $id, numericId: $numericId, name: $name, ownerId: $ownerId, memberCount: $memberCount)';
+      'GroupModel(id: $id, numericId: $numericId, name: $name, level: $level)';
 }
