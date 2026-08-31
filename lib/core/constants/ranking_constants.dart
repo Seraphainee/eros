@@ -1,5 +1,5 @@
-/// Sistema de RANK + NÍVEL do usuário (diferente do nível de GRUPO em
-/// `ranking_constants.dart`).
+/// Sistema de RANK + NÍVEL do usuário (diferente do nível de GRUPO,
+/// ver `RankingConstants` no fim deste arquivo).
 ///
 /// Estrutura: 11 RANKS (Coração, Gota, Diamante, Coroa, Escudo, Casa,
 /// Estrela, Raio, Asa, Fênix, Coroa Real), cada um com 5 NÍVEIS —
@@ -175,4 +175,29 @@ class RankDefinition {
   /// (ex.: `t02_gota`). Use [RankConstants.iconAssetPathForLevel]
   /// para montar o caminho completo de um nível específico.
   final String slug;
+}
+
+/// Sistema de NÍVEL do GRUPO (diferente do rank de usuário acima,
+/// `RankConstants`), usado por `GroupModel.level` /
+/// `GroupModel.pointsToNextLevel` / `GroupModel.levelProgress`.
+///
+/// Reaproveita a MESMA curva de 55 níveis de [RankConstants] — o
+/// grupo não tem uma progressão própria, apenas usa
+/// `contributionPoints` (soma de voz + mensagens + eventos) como
+/// entrada na mesma tabela de thresholds usada para XP de usuário.
+/// Ver cabeçalho deste arquivo para a derivação da curva.
+class RankingConstants {
+  RankingConstants._();
+
+  /// Nível do grupo (1..55) correspondente a [points] de contribuição.
+  static int levelForPoints(int points) => RankConstants.levelForXp(points);
+
+  /// Pontos que faltam para o grupo alcançar o próximo nível
+  /// (null se já no nível máximo).
+  static int? pointsToNextLevel(int points) =>
+      RankConstants.xpToNextLevel(points);
+
+  /// Progresso (0.0 a 1.0) do grupo dentro do nível atual.
+  static double progressInLevel(int points) =>
+      RankConstants.progressInLevel(points);
 }
