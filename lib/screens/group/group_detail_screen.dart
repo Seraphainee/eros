@@ -2,10 +2,17 @@
 ///
 /// Réplica do fluxo de referência: no topo, o card do grupo com
 /// ícone emoldurado, nome, badges (ID único, nível, online, membros)
-/// e os botões Curtir/Favoritar. Abaixo, a lista de canais (texto e
-/// voz) com contagem de presença ao vivo e avatares de quem está na
-/// chamada. Toque em um canal de texto abre `TextChannelScreen`;
-/// toque em um canal de voz abre `VoiceRoomScreen`.
+/// e os botões Curtir/Favoritar (visíveis a QUALQUER membro). Abaixo,
+/// a lista de canais (texto e voz) com contagem de presença ao vivo e
+/// avatares de quem está na chamada — inclusive em canais protegidos
+/// por senha, que mostram um cadeado mas continuam listando quem
+/// está dentro para qualquer pessoa (dono, membro ou visitante).
+///
+/// O menu (⋮) sempre aparece, mas o CONTEÚDO muda por papel:
+/// - Qualquer membro: Enquete (votar; criar é exclusivo de dono/admin,
+///   tratado dentro da própria tela de enquete) e Convidar membro.
+/// - Exclusivo do dono: Fazer anúncio, Criar canal, Ordem dos canais,
+///   Configurações do grupo.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,6 +26,7 @@ import '../../widgets/common/app_avatar.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../channel/text_channel_screen.dart';
 import '../voice/voice_room_screen.dart';
+import 'channel_create_screen.dart';
 
 class GroupDetailScreen extends ConsumerWidget {
   const GroupDetailScreen({super.key, required this.groupId});
@@ -41,7 +49,23 @@ class GroupDetailScreen extends ConsumerWidget {
               // TODO: MembersListScreen (etapa futura).
             },
           ),
-          _GroupOptionsMenuButton(groupId: groupId),
+          groupAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (e, _) => const SizedBox.shrink(),
+            data: (group) {
+              if (group == null) return const SizedBox.shrink();
+              final uid = ref.watch(currentUserIdProvider);
+              final isOwner = uid != null && group.ownerId == uid;
+              // O botão (⋮) aparece para TODOS. O conteúdo do menu
+              // muda: Enquete e Convidar membro ficam visíveis para
+              // qualquer membro; Fazer anúncio, Criar canal, Ordem
+              // dos canais e Configurações são exclusivos do dono.
+              return _GroupOptionsMenuButton(
+                groupId: groupId,
+                isOwner: isOwner,
+              );
+            },
+          ),
         ],
       ),
       body: groupAsync.when(
@@ -66,6 +90,7 @@ class GroupDetailScreen extends ConsumerWidget {
 }
 
 /// Card superior: ícone, nome, badges e botões curtir/favoritar.
+/// Visível e utilizável por QUALQUER membro do grupo (dono ou não).
 class _GroupCard extends ConsumerWidget {
   const _GroupCard({required this.group});
 
@@ -476,6 +501,12 @@ class _ChannelTile extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (channel.isPasswordProtected) ...<Widget>[
+                  const Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Icon(Icons.lock, size: 15, color: Colors.white38),
+                  ),
+                ],
                 if (channel.isVoice) ...<Widget>[
                   Container(
                     padding:
@@ -523,12 +554,21 @@ class _ChannelTile extends ConsumerWidget {
   }
 }
 
-/// Menu (⋮) do topo: Enquete, Convidar membro, Fazer anúncio, Criar
-/// canal, Ordem dos canais, Configurações do grupo.
+/// Menu (⋮) do topo.
+///
+/// - Todos os membros veem: Enquete (dono/admin cria; membro comum
+///   só vota — a distinção acontece dentro da tela de enquete, não
+///   aqui) e Convidar membro (busca por nome/ID + botão convidar).
+/// - Exclusivo do dono: Fazer anúncio, Criar canal, Ordem dos
+///   canais, Configurações do grupo.
 class _GroupOptionsMenuButton extends ConsumerWidget {
-  const _GroupOptionsMenuButton({required this.groupId});
+  const _GroupOptionsMenuButton({
+    required this.groupId,
+    required this.isOwner,
+  });
 
   final String groupId;
+  final bool isOwner;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -552,8 +592,10 @@ class _GroupOptionsMenuButton extends ConsumerWidget {
             );
             break;
           case 'create_channel':
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Criar canal em breve.')),
+            Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => ChannelCreateScreen(groupId: groupId),
+              ),
             );
             break;
           case 'reorder_channels':
@@ -568,31 +610,36 @@ class _GroupOptionsMenuButton extends ConsumerWidget {
             break;
         }
       },
-      itemBuilder: (context) => const <PopupMenuEntry<String>>[
-        PopupMenuItem<String>(
+      itemBuilder: (context) => <PopupMenuEntry<String>>[
+        // --- Visível a qualquer membro ---
+        const PopupMenuItem<String>(
           value: 'poll',
           child: _MenuRow(icon: Icons.bar_chart, label: 'Enquete'),
         ),
-        PopupMenuItem<String>(
+        const PopupMenuItem<String>(
           value: 'invite',
           child: _MenuRow(icon: Icons.person_add_alt, label: 'Convidar membro'),
         ),
-        PopupMenuItem<String>(
-          value: 'announcement',
-          child: _MenuRow(icon: Icons.campaign_outlined, label: 'Fazer anúncio'),
-        ),
-        PopupMenuItem<String>(
-          value: 'create_channel',
-          child: _MenuRow(icon: Icons.add_box_outlined, label: 'Criar canal'),
-        ),
-        PopupMenuItem<String>(
-          value: 'reorder_channels',
-          child: _MenuRow(icon: Icons.reorder, label: 'Ordem dos canais'),
-        ),
-        PopupMenuItem<String>(
-          value: 'settings',
-          child: _MenuRow(icon: Icons.tune, label: 'Configurações do grupo'),
-        ),
+        // --- Exclusivo do dono ---
+        if (isOwner) ...<PopupMenuEntry<String>>[
+          const PopupMenuDivider(),
+          const PopupMenuItem<String>(
+            value: 'announcement',
+            child: _MenuRow(icon: Icons.campaign_outlined, label: 'Fazer anúncio'),
+          ),
+          const PopupMenuItem<String>(
+            value: 'create_channel',
+            child: _MenuRow(icon: Icons.add_box_outlined, label: 'Criar canal'),
+          ),
+          const PopupMenuItem<String>(
+            value: 'reorder_channels',
+            child: _MenuRow(icon: Icons.reorder, label: 'Ordem dos canais'),
+          ),
+          const PopupMenuItem<String>(
+            value: 'settings',
+            child: _MenuRow(icon: Icons.tune, label: 'Configurações do grupo'),
+          ),
+        ],
       ],
     );
   }
