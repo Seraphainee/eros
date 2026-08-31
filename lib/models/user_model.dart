@@ -6,7 +6,7 @@
 /// Implementação manual imutável nesta Etapa 1; quando o gerador
 /// `freezed`/`json_serializable` for executado (Etapa 2), este arquivo
 /// será migrado para a forma gerada preservando a mesma API pública.
-import '../core/constants/rank_constants.dart';
+import '../core/constants/ranking_constants.dart';
 import '../core/constants/xp_constants.dart';
 
 class UserModel {
