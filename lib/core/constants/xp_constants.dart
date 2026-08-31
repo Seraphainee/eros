@@ -1,6 +1,7 @@
 /// Constantes do sistema de XP de USUÁRIO (diferente do nível de
 /// GRUPO em `ranking_constants.dart`, embora ambos usem a mesma
-/// curva de níveis `RankingConstants.levelThresholds`).
+/// curva de níveis `RankConstants.levelThresholds`, ver
+/// `RankingConstants` nesse arquivo).
 ///
 /// Regra de negócio (confirmada pelo dono do produto):
 /// - XP acumula apenas por TEMPO COM O APP ABERTO (qualquer tela,
