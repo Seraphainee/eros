@@ -1,10 +1,15 @@
 /// Constantes para o sistema de ranking e níveis.
 ///
 /// Contém curvas de progressão, pontuações e configurações antiabuso.
+/// A curva de níveis ([levelThresholds] e os métodos que a usam) é
+/// compartilhada entre o nível de GRUPO e o nível de USUÁRIO — ambos
+/// usam a mesma tabela de pontos→nível; o que muda é apenas como os
+/// pontos são acumulados (ver `XpConstants` em `xp_constants.dart`
+/// para as regras específicas de XP de usuário).
 class RankingConstants {
   RankingConstants._();
 
-  // --- Pontos por ação ---
+  // --- Pontos por ação (grupo) ---
   /// Pontos concedidos por minuto em sala de voz (com mais de 1 participante).
   static const int voicePointsPerMinute = 1;
 
