@@ -1,9 +1,8 @@
 /// Sistema de RANK + NÍVEL do usuário (diferente do nível de GRUPO em
 /// `ranking_constants.dart`).
 ///
-/// Estrutura: 11 RANKS (Coração, Diamante, Coroa Prata, Coroa Ouro,
-/// Coroa Azul, Coroa Colorida, Coroa c/ Fita, Coroa Rosa/Dourada,
-/// Coroa Verde, Coroa Vermelha, Troféu), cada um com 5 NÍVEIS —
+/// Estrutura: 11 RANKS (Coração, Gota, Diamante, Coroa, Escudo, Casa,
+/// Estrela, Raio, Asa, Fênix, Coroa Real), cada um com 5 NÍVEIS —
 /// totalizando 55 níveis de usuário.
 ///
 /// A curva de XP ([levelThresholds]) foi derivada da tabela de tempo
@@ -19,11 +18,12 @@
 /// mais rápido porque ganham XP em taxa maior (4x/8x, ver
 /// `XpConstants.vipMultiplier`), não porque os thresholds mudam.
 ///
-/// Ícones: a referência usa artes customizadas (coração, diamante,
-/// coroas coloridas, troféu) que ainda não foram fornecidas como
-/// arquivo. [RankDefinition.iconAssetPath] já aponta para onde elas
-/// devem ficar quando chegarem; [RankDefinition.iconFallback] é o
-/// emoji usado enquanto isso.
+/// Ícones: artes customizadas em SVG (coração, gota, diamante, coroa,
+/// escudo, casa, estrela, raio, asa, fênix, coroa real), uma por
+/// nível (55 arquivos), em `assets/icons/ranks/`.
+/// [RankConstants.iconAssetPathForLevel] monta o caminho do ícone de
+/// um nível específico (1..55); [RankDefinition.iconFallback] é o
+/// emoji usado como fallback caso o asset não carregue.
 class RankConstants {
   RankConstants._();
 
@@ -36,75 +36,85 @@ class RankConstants {
     421, // nível 3 — Coração 3
     747, // nível 4 — Coração 4
     1188, // nível 5 — Coração 5
-    1188, // nível 6 — Diamante 1
-    1644, // nível 7 — Diamante 2
-    2259, // nível 8 — Diamante 3
-    3090, // nível 9 — Diamante 4
-    4212, // nível 10 — Diamante 5
-    4212, // nível 11 — Coroa Prata 1
-    5319, // nível 12 — Coroa Prata 2
-    6814, // nível 13 — Coroa Prata 3
-    8832, // nível 14 — Coroa Prata 4
-    11556, // nível 15 — Coroa Prata 5
-    11556, // nível 16 — Coroa Ouro 1
-    14313, // nível 17 — Coroa Ouro 2
-    18035, // nível 18 — Coroa Ouro 3
-    23060, // nível 19 — Coroa Ouro 4
-    29844, // nível 20 — Coroa Ouro 5
-    29844, // nível 21 — Coroa Azul 1
-    36704, // nível 22 — Coroa Azul 2
-    45966, // nível 23 — Coroa Azul 3
-    58469, // nível 24 — Coroa Azul 4
-    75348, // nível 25 — Coroa Azul 5
-    75348, // nível 26 — Coroa Colorida 1
-    92434, // nível 27 — Coroa Colorida 2
-    115500, // nível 28 — Coroa Colorida 3
-    146639, // nível 29 — Coroa Colorida 4
-    188676, // nível 30 — Coroa Colorida 5
-    188676, // nível 31 — Coroa c/ Fita 1
-    231206, // nível 32 — Coroa c/ Fita 2
-    288621, // nível 33 — Coroa c/ Fita 3
-    366132, // nível 34 — Coroa c/ Fita 4
-    470772, // nível 35 — Coroa c/ Fita 5
-    470772, // nível 36 — Coroa Rosa/Dourada 1
-    475064, // nível 37 — Coroa Rosa/Dourada 2
-    480859, // nível 38 — Coroa Rosa/Dourada 3
-    488681, // nível 39 — Coroa Rosa/Dourada 4
-    499242, // nível 40 — Coroa Rosa/Dourada 5
-    499242, // nível 41 — Coroa Verde 1
-    510138, // nível 42 — Coroa Verde 2
-    524847, // nível 43 — Coroa Verde 3
-    544704, // nível 44 — Coroa Verde 4
-    571512, // nível 45 — Coroa Verde 5
-    571512, // nível 46 — Coroa Vermelha 1
-    598916, // nível 47 — Coroa Vermelha 2
-    635912, // nível 48 — Coroa Vermelha 3
-    685857, // nível 49 — Coroa Vermelha 4
-    753282, // nível 50 — Coroa Vermelha 5
-    753282, // nível 51 — Troféu 1
-    821298, // nível 52 — Troféu 2
-    913119, // nível 53 — Troféu 3
-    1037078, // nível 54 — Troféu 4
-    1204422, // nível 55 — Troféu 5
+    1188, // nível 6 — Gota 1
+    1644, // nível 7 — Gota 2
+    2259, // nível 8 — Gota 3
+    3090, // nível 9 — Gota 4
+    4212, // nível 10 — Gota 5
+    4212, // nível 11 — Diamante 1
+    5319, // nível 12 — Diamante 2
+    6814, // nível 13 — Diamante 3
+    8832, // nível 14 — Diamante 4
+    11556, // nível 15 — Diamante 5
+    11556, // nível 16 — Coroa 1
+    14313, // nível 17 — Coroa 2
+    18035, // nível 18 — Coroa 3
+    23060, // nível 19 — Coroa 4
+    29844, // nível 20 — Coroa 5
+    29844, // nível 21 — Escudo 1
+    36704, // nível 22 — Escudo 2
+    45966, // nível 23 — Escudo 3
+    58469, // nível 24 — Escudo 4
+    75348, // nível 25 — Escudo 5
+    75348, // nível 26 — Casa 1
+    92434, // nível 27 — Casa 2
+    115500, // nível 28 — Casa 3
+    146639, // nível 29 — Casa 4
+    188676, // nível 30 — Casa 5
+    188676, // nível 31 — Estrela 1
+    231206, // nível 32 — Estrela 2
+    288621, // nível 33 — Estrela 3
+    366132, // nível 34 — Estrela 4
+    470772, // nível 35 — Estrela 5
+    470772, // nível 36 — Raio 1
+    475064, // nível 37 — Raio 2
+    480859, // nível 38 — Raio 3
+    488681, // nível 39 — Raio 4
+    499242, // nível 40 — Raio 5
+    499242, // nível 41 — Asa 1
+    510138, // nível 42 — Asa 2
+    524847, // nível 43 — Asa 3
+    544704, // nível 44 — Asa 4
+    571512, // nível 45 — Asa 5
+    571512, // nível 46 — Fênix 1
+    598916, // nível 47 — Fênix 2
+    635912, // nível 48 — Fênix 3
+    685857, // nível 49 — Fênix 4
+    753282, // nível 50 — Fênix 5
+    753282, // nível 51 — Coroa Real 1
+    821298, // nível 52 — Coroa Real 2
+    913119, // nível 53 — Coroa Real 3
+    1037078, // nível 54 — Coroa Real 4
+    1204422, // nível 55 — Coroa Real 5
   ];
 
   /// Quantidade de níveis dentro de cada rank.
   static const int levelsPerRank = 5;
 
-  /// Os 11 ranks, em ordem crescente.
+  /// Os 11 ranks, em ordem crescente. `slug` é o identificador usado
+  /// no nome de arquivo dos ícones (ex.: `t01_coracao`).
   static const List<RankDefinition> ranks = <RankDefinition>[
-    RankDefinition(name: 'Coração', iconFallback: '❤️', iconAssetPath: 'assets/ranks/heart.png'),
-    RankDefinition(name: 'Diamante', iconFallback: '💎', iconAssetPath: 'assets/ranks/diamond.png'),
-    RankDefinition(name: 'Coroa Prata', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_silver.png'),
-    RankDefinition(name: 'Coroa Ouro', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_gold.png'),
-    RankDefinition(name: 'Coroa Azul', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_blue.png'),
-    RankDefinition(name: 'Coroa Colorida', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_colorful.png'),
-    RankDefinition(name: 'Coroa com Fita', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_ribbon.png'),
-    RankDefinition(name: 'Coroa Rosa/Dourada', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_pink_gold.png'),
-    RankDefinition(name: 'Coroa Verde', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_green.png'),
-    RankDefinition(name: 'Coroa Vermelha', iconFallback: '👑', iconAssetPath: 'assets/ranks/crown_red.png'),
-    RankDefinition(name: 'Troféu', iconFallback: '🏆', iconAssetPath: 'assets/ranks/trophy.png'),
+    RankDefinition(name: 'Coração', iconFallback: '❤️', slug: 't01_coracao'),
+    RankDefinition(name: 'Gota', iconFallback: '💧', slug: 't02_gota'),
+    RankDefinition(name: 'Diamante', iconFallback: '💎', slug: 't03_diamante'),
+    RankDefinition(name: 'Coroa', iconFallback: '👑', slug: 't04_coroa'),
+    RankDefinition(name: 'Escudo', iconFallback: '🛡️', slug: 't05_escudo'),
+    RankDefinition(name: 'Casa', iconFallback: '🏠', slug: 't06_casa'),
+    RankDefinition(name: 'Estrela', iconFallback: '⭐', slug: 't07_estrela'),
+    RankDefinition(name: 'Raio', iconFallback: '⚡', slug: 't08_raio'),
+    RankDefinition(name: 'Asa', iconFallback: '🪽', slug: 't09_asa'),
+    RankDefinition(name: 'Fênix', iconFallback: '🔥', slug: 't10_fenix'),
+    RankDefinition(name: 'Coroa Real', iconFallback: '👑', slug: 't11_coroa_real'),
   ];
+
+  /// Caminho do asset SVG do ícone de um nível específico (1..55),
+  /// ex.: `assets/icons/ranks/nivel_07_t02_gota.svg`.
+  static String iconAssetPathForLevel(int level) {
+    final clamped = level.clamp(1, levelThresholds.length);
+    final slug = rankForLevel(clamped).slug;
+    final levelStr = clamped.toString().padLeft(2, '0');
+    return 'assets/icons/ranks/nivel_${levelStr}_$slug.svg';
+  }
 
   /// Nível (1..55) correspondente a uma quantidade de pontos de XP.
   static int levelForXp(int xp) {
@@ -152,17 +162,17 @@ class RankDefinition {
   const RankDefinition({
     required this.name,
     required this.iconFallback,
-    required this.iconAssetPath,
+    required this.slug,
   });
 
-  /// Nome do rank (ex: "Coroa Azul").
+  /// Nome do rank (ex: "Coroa Real").
   final String name;
 
-  /// Emoji usado enquanto o asset customizado não é fornecido.
+  /// Emoji usado como fallback caso o asset SVG não carregue.
   final String iconFallback;
 
-  /// Caminho esperado do asset customizado (ainda não existe no
-  /// projeto — adicionar ao `pubspec.yaml` em `assets:` quando os
-  /// arquivos PNG/SVG forem fornecidos).
-  final String iconAssetPath;
+  /// Identificador do tema usado no nome de arquivo do ícone
+  /// (ex.: `t02_gota`). Use [RankConstants.iconAssetPathForLevel]
+  /// para montar o caminho completo de um nível específico.
+  final String slug;
 }
