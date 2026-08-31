@@ -1,7 +1,9 @@
 /// Tela de criação de canal do EROS — réplica da tela "Criar Canal"
 /// da referência: alternância Canal/Seção, nome, modo de voz
 /// (Grátis/Admin/Em fila) e visibilidade (Público/membros/Somente
-/// avisos/Privado).
+/// avisos/Privado). Quando "Privado" é selecionado, um campo de
+/// senha opcional aparece — a senha protege a ENTRADA no canal;
+/// nome e presença continuam visíveis a todos.
 ///
 /// Visual: mesmo padrão da `GroupCreateScreen` — fundo preto com
 /// partículas em looping (ParticleBackground) e gradiente
@@ -31,6 +33,7 @@ class ChannelCreateScreen extends ConsumerStatefulWidget {
 class _ChannelCreateScreenState extends ConsumerState<ChannelCreateScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
 
   static const Color _deepPurple = Color(0xFF2A1B6E);
   static const Color _deepBlue = Color(0xFF1B2A63);
@@ -46,6 +49,7 @@ class _ChannelCreateScreenState extends ConsumerState<ChannelCreateScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -64,6 +68,9 @@ class _ChannelCreateScreenState extends ConsumerState<ChannelCreateScreen> {
       actingUserId: userId,
       voiceMode: _voiceMode,
       visibility: _visibility,
+      password: _visibility == ChannelVisibility.private
+          ? _passwordCtrl.text.trim()
+          : null,
     );
 
     final state = ref.read(channelCreateControllerProvider);
@@ -112,6 +119,11 @@ class _ChannelCreateScreenState extends ConsumerState<ChannelCreateScreen> {
                         ],
                         _buildLabel('Visibilidade'),
                         _buildVisibilitySelector(),
+                        if (_visibility == ChannelVisibility.private) ...<Widget>[
+                          const SizedBox(height: 20),
+                          _buildLabel('SENHA DO CANAL'),
+                          _buildPasswordField(),
+                        ],
                         if (state.errorMessage != null) ...<Widget>[
                           const SizedBox(height: 16),
                           Text(
@@ -235,6 +247,43 @@ class _ChannelCreateScreenState extends ConsumerState<ChannelCreateScreen> {
           }
           return null;
         },
+      ),
+    );
+  }
+
+  /// Campo de senha do canal — só relevante quando a visibilidade é
+  /// "Privado". A senha é enviada em texto puro apenas nesta
+  /// requisição; o `ChannelService` transforma em hash SHA-256 antes
+  /// de gravar (ver `ChannelService.hashPassword`). Sem senha =
+  /// canal privado sem proteção extra (apenas oculto na listagem).
+  Widget _buildPasswordField() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            _deepPurple.withValues(alpha: 0.35),
+            _deepBlue.withValues(alpha: 0.35),
+          ],
+        ),
+      ),
+      child: TextFormField(
+        controller: _passwordCtrl,
+        obscureText: true,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: 'Opcional — deixe em branco para não usar senha',
+          hintStyle: TextStyle(
+            color: Colors.white.withValues(alpha: 0.35),
+            fontSize: 13,
+          ),
+          prefixIcon: const Icon(Icons.lock_outline, color: Colors.white38, size: 20),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
       ),
     );
   }
