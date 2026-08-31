@@ -281,6 +281,7 @@ class ChannelCreateController extends StateNotifier<ChannelCreateState> {
     required String actingUserId,
     VoiceMode voiceMode = VoiceMode.free,
     ChannelVisibility visibility = ChannelVisibility.public,
+    String? password,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -291,6 +292,7 @@ class ChannelCreateController extends StateNotifier<ChannelCreateState> {
         actingUserId: actingUserId,
         voiceMode: voiceMode,
         visibility: visibility,
+        password: password,
       );
       state = ChannelCreateState(
         isLoading: false,
