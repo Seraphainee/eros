@@ -5,12 +5,19 @@
 /// ordenados".
 ///
 /// Regras:
-/// - Apenas quem tem `manageChannels` cria/renomeia/deleta/reordena.
+/// - Apenas quem tem `manageChannels` cria/renomeia/deleta/reordena/
+///   define senha.
 /// - Não permite deletar o último canal do grupo.
 /// - `name` é normalizado para minúsculas e sem espaços nas pontas.
+/// - Senha de canal nunca é armazenada em texto puro — apenas o hash
+///   SHA-256 fica no documento (que é legível por qualquer membro,
+///   já que o nome/lista de presença do canal ficam visíveis mesmo
+///   sem acesso). Ver `ChannelModel.passwordHash`.
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 
 import '../../core/errors/app_exception.dart';
 import '../../core/utils/logger.dart';
@@ -31,7 +38,14 @@ class ChannelService {
   CollectionReference<Map<String, dynamic>> get _channelsRef =>
       _firestore.collection('channels');
 
-  /// Cria um canal. Atribui `order` = max(order)+1.
+  /// Hash SHA-256 de uma senha em texto puro, em hexadecimal.
+  static String hashPassword(String plainPassword) {
+    return sha256.convert(utf8.encode(plainPassword)).toString();
+  }
+
+  /// Cria um canal. Atribui `order` = max(order)+1. Se [password]
+  /// for informada, o canal nasce protegido (hash salvo, nunca a
+  /// senha em si).
   Future<ChannelModel> createChannel({
     required String groupId,
     required String name,
@@ -39,6 +53,7 @@ class ChannelService {
     required String actingUserId,
     VoiceMode voiceMode = VoiceMode.free,
     ChannelVisibility visibility = ChannelVisibility.public,
+    String? password,
   }) async {
     final cleaned = name.trim().toLowerCase();
     if (cleaned.isEmpty) {
@@ -72,6 +87,11 @@ class ChannelService {
         ? 0
         : ((all.docs.first.data()['order'] as num).toInt() + 1);
 
+    final trimmedPassword = password?.trim();
+    final passwordHash = (trimmedPassword != null && trimmedPassword.isNotEmpty)
+        ? hashPassword(trimmedPassword)
+        : null;
+
     final ref = _channelsRef.doc();
     final channel = ChannelModel(
       id: ref.id,
@@ -82,6 +102,7 @@ class ChannelService {
       permissionOverrides: 0,
       voiceMode: voiceMode,
       visibility: visibility,
+      passwordHash: passwordHash,
       createdAt: DateTime.now(),
     );
     try {
@@ -91,6 +112,53 @@ class ChannelService {
     }
     Logger.i('ChannelService: canal ${channel.id} ($cleaned) criado em $groupId');
     return channel;
+  }
+
+  /// Define, troca ou remove a senha do canal. Passe `null` ou
+  /// string vazia em [password] para remover a proteção.
+  /// Só quem tem `manageChannels` pode chamar.
+  Future<void> setChannelPassword({
+    required String channelId,
+    required String? password,
+    required String actingUserId,
+  }) async {
+    final snap = await _channelsRef.doc(channelId).get();
+    if (!snap.exists || snap.data() == null) {
+      throw const FirestoreException(message: 'channel-not-found');
+    }
+    final channel = ChannelModel.fromJson(snap.data()!);
+    final ownerId = await _requireOwnerId(channel.groupId);
+    final resolved = await _resolver.resolveForGroup(
+      groupId: channel.groupId,
+      userId: actingUserId,
+      groupOwnerId: ownerId,
+    );
+    if (!resolved.can(_manageChannels)) {
+      throw const AuthException(message: 'no-manage-channels-permission');
+    }
+    final trimmed = password?.trim();
+    final newHash =
+        (trimmed != null && trimmed.isNotEmpty) ? hashPassword(trimmed) : null;
+    try {
+      await _channelsRef.doc(channelId).update(<String, dynamic>{
+        'passwordHash': newHash,
+      });
+    } on FirebaseException catch (e, st) {
+      throw FirestoreException(message: e.message ?? e.code, stackTrace: st);
+    }
+  }
+
+  /// Verifica se [password] confere com a senha do canal.
+  ///
+  /// Retorna `true` se o canal NÃO tem senha (entrada livre) OU se
+  /// o hash bate. Retorna `false` apenas quando o canal tem senha e
+  /// ela não confere. Não usa Firestore para a checagem em si —
+  /// compara localmente contra o `ChannelModel` já carregado, então
+  /// o chamador deve passar o [channel] atualizado (ex: vindo do
+  /// `channelsStreamProvider`).
+  bool verifyPassword(ChannelModel channel, String password) {
+    if (!channel.isPasswordProtected) return true;
+    return hashPassword(password.trim()) == channel.passwordHash;
   }
 
   /// Deleta um canal. Recusa se for o último.
