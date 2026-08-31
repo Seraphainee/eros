@@ -6,6 +6,9 @@
 /// Implementação manual imutável nesta Etapa 1; quando o gerador
 /// `freezed`/`json_serializable` for executado (Etapa 2), este arquivo
 /// será migrado para a forma gerada preservando a mesma API pública.
+import '../core/constants/rank_constants.dart';
+import '../core/constants/xp_constants.dart';
+
 class UserModel {
   const UserModel({
     required this.uid,
@@ -18,6 +21,8 @@ class UserModel {
     this.bio,
     required this.status,
     required this.createdAt,
+    this.xpPoints = 0,
+    this.vipTier = VipTier.none,
   });
 
   /// UID do Firebase Auth — chave primária.
@@ -57,6 +62,33 @@ class UserModel {
   /// Quando o perfil foi criado (Firestore).
   final DateTime createdAt;
 
+  /// XP acumulado do usuário. Cresce apenas por tempo com o app
+  /// aberto (ver `XpService`), multiplicado por [vipTier] e por um
+  /// eventual multiplicador de sala. Alimenta [level], [rank] etc.
+  /// via `RankConstants` (11 ranks x 5 níveis = 55 níveis).
+  final int xpPoints;
+
+  /// Tier de assinatura VIP do usuário — afeta a taxa de ganho de XP.
+  final VipTier vipTier;
+
+  /// Nível atual (1..55), derivado de [xpPoints].
+  int get level => RankConstants.levelForXp(xpPoints);
+
+  /// Rank atual (Coração, Diamante, ... Troféu), derivado de [level].
+  RankDefinition get rank => RankConstants.rankForLevel(level);
+
+  /// Nível dentro do rank atual (1..5).
+  int get levelWithinRank => RankConstants.levelWithinRank(level);
+
+  /// XP que falta para o próximo nível (null se nível máximo).
+  int? get xpToNextLevel => RankConstants.xpToNextLevel(xpPoints);
+
+  /// Progresso (0.0..1.0) dentro do nível atual.
+  double get levelProgress => RankConstants.progressInLevel(xpPoints);
+
+  /// Multiplicador de XP concedido pelo tier VIP do usuário.
+  int get vipXpMultiplier => XpConstants.vipMultiplier[vipTier] ?? 1;
+
   UserModel copyWith({
     String? uid,
     String? email,
@@ -68,6 +100,8 @@ class UserModel {
     String? bio,
     UserStatus? status,
     DateTime? createdAt,
+    int? xpPoints,
+    VipTier? vipTier,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -80,6 +114,8 @@ class UserModel {
       bio: bio ?? this.bio,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      xpPoints: xpPoints ?? this.xpPoints,
+      vipTier: vipTier ?? this.vipTier,
     );
   }
 
@@ -94,6 +130,8 @@ class UserModel {
         'bio': bio,
         'status': status.name,
         'createdAt': createdAt.toIso8601String(),
+        'xpPoints': xpPoints,
+        'vipTier': vipTier.name,
       };
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -112,6 +150,11 @@ class UserModel {
           orElse: () => UserStatus.offline,
         ),
         createdAt: DateTime.parse(json['createdAt'] as String),
+        xpPoints: (json['xpPoints'] as int?) ?? 0,
+        vipTier: VipTier.values.firstWhere(
+          (e) => e.name == json['vipTier'],
+          orElse: () => VipTier.none,
+        ),
       );
 
   @override
@@ -127,7 +170,9 @@ class UserModel {
         other.signature == signature &&
         other.bio == bio &&
         other.status == status &&
-        other.createdAt == createdAt;
+        other.createdAt == createdAt &&
+        other.xpPoints == xpPoints &&
+        other.vipTier == vipTier;
   }
 
   @override
@@ -142,10 +187,13 @@ class UserModel {
         bio,
         status,
         createdAt,
+        xpPoints,
+        vipTier,
       );
 
   @override
-  String toString() => 'UserModel(uid: $uid, username: $username, status: $status)';
+  String toString() =>
+      'UserModel(uid: $uid, username: $username, status: $status, level: $level, xp: $xpPoints)';
 }
 
 /// Estados possíveis para um usuário no app.
