@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad_nivel_14_t03_diamante" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#eef1f5"/>
+      <stop offset="100%" stop-color="#5a5a5a"/>
+    </linearGradient>
+    <radialGradient id="bg_nivel_14_t03_diamante" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#1a2440"/>
+      <stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+    <filter id="shadow_nivel_14_t03_diamante" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#bg_nivel_14_t03_diamante)"/>
+  <g filter="url(#shadow_nivel_14_t03_diamante)">
+    <g fill="url(#grad_nivel_14_t03_diamante)" stroke="#101018" stroke-width="4" stroke-linejoin="round">
+      <path d="M50 6 L78 34 L78 40 L50 96 L22 40 L22 34 Z M22 34 L78 34 M22 40 L78 40 M35 34 L50 96 M65 34 L50 96 M50 6 L35 34 M50 6 L65 34" stroke-width="3"/>
+    </g>
+    <ellipse cx="50" cy="34" rx="26" ry="14" fill="white" opacity="0.41"/>
+  </g>
+</svg>

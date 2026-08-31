@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad_nivel_52_t11_coroa_real" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f2d6ff"/>
+      <stop offset="55%" stop-color="#cd5bff"/>
+      <stop offset="100%" stop-color="#5a1f8a"/>
+    </linearGradient>
+    <radialGradient id="bg_nivel_52_t11_coroa_real" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#1a2440"/>
+      <stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+    <filter id="shadow_nivel_52_t11_coroa_real" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#bg_nivel_52_t11_coroa_real)"/>
+  <g filter="url(#shadow_nivel_52_t11_coroa_real)">
+    <g fill="url(#grad_nivel_52_t11_coroa_real)" stroke="#101018" stroke-width="4" stroke-linejoin="round">
+      <path d="M14 44 L26 30 L38 50 L50 20 L62 50 L74 30 L86 44 L80 84 H20 Z M50 20 L50 8 M50 8 L45 15 L55 15 Z" stroke-width="3"/>
+    </g>
+    <ellipse cx="50" cy="34" rx="26" ry="14" fill="white" opacity="0.24"/>
+  </g>
+</svg>

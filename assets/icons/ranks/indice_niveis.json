@@ -1,0 +1,332 @@
+[
+  {
+    "nivel": 1,
+    "tier": "Coração",
+    "arquivo": "nivel_01_t01_coracao.svg",
+    "pontuacao_minima": 0
+  },
+  {
+    "nivel": 2,
+    "tier": "Coração",
+    "arquivo": "nivel_02_t01_coracao.svg",
+    "pontuacao_minima": 1
+  },
+  {
+    "nivel": 3,
+    "tier": "Coração",
+    "arquivo": "nivel_03_t01_coracao.svg",
+    "pontuacao_minima": 4
+  },
+  {
+    "nivel": 4,
+    "tier": "Coração",
+    "arquivo": "nivel_04_t01_coracao.svg",
+    "pontuacao_minima": 13
+  },
+  {
+    "nivel": 5,
+    "tier": "Coração",
+    "arquivo": "nivel_05_t01_coracao.svg",
+    "pontuacao_minima": 30
+  },
+  {
+    "nivel": 6,
+    "tier": "Gota",
+    "arquivo": "nivel_06_t02_gota.svg",
+    "pontuacao_minima": 57
+  },
+  {
+    "nivel": 7,
+    "tier": "Gota",
+    "arquivo": "nivel_07_t02_gota.svg",
+    "pontuacao_minima": 97
+  },
+  {
+    "nivel": 8,
+    "tier": "Gota",
+    "arquivo": "nivel_08_t02_gota.svg",
+    "pontuacao_minima": 152
+  },
+  {
+    "nivel": 9,
+    "tier": "Gota",
+    "arquivo": "nivel_09_t02_gota.svg",
+    "pontuacao_minima": 224
+  },
+  {
+    "nivel": 10,
+    "tier": "Gota",
+    "arquivo": "nivel_10_t02_gota.svg",
+    "pontuacao_minima": 317
+  },
+  {
+    "nivel": 11,
+    "tier": "Diamante",
+    "arquivo": "nivel_11_t03_diamante.svg",
+    "pontuacao_minima": 431
+  },
+  {
+    "nivel": 12,
+    "tier": "Diamante",
+    "arquivo": "nivel_12_t03_diamante.svg",
+    "pontuacao_minima": 571
+  },
+  {
+    "nivel": 13,
+    "tier": "Diamante",
+    "arquivo": "nivel_13_t03_diamante.svg",
+    "pontuacao_minima": 737
+  },
+  {
+    "nivel": 14,
+    "tier": "Diamante",
+    "arquivo": "nivel_14_t03_diamante.svg",
+    "pontuacao_minima": 933
+  },
+  {
+    "nivel": 15,
+    "tier": "Diamante",
+    "arquivo": "nivel_15_t03_diamante.svg",
+    "pontuacao_minima": 1161
+  },
+  {
+    "nivel": 16,
+    "tier": "Coroa",
+    "arquivo": "nivel_16_t04_coroa.svg",
+    "pontuacao_minima": 1424
+  },
+  {
+    "nivel": 17,
+    "tier": "Coroa",
+    "arquivo": "nivel_17_t04_coroa.svg",
+    "pontuacao_minima": 1723
+  },
+  {
+    "nivel": 18,
+    "tier": "Coroa",
+    "arquivo": "nivel_18_t04_coroa.svg",
+    "pontuacao_minima": 2061
+  },
+  {
+    "nivel": 19,
+    "tier": "Coroa",
+    "arquivo": "nivel_19_t04_coroa.svg",
+    "pontuacao_minima": 2441
+  },
+  {
+    "nivel": 20,
+    "tier": "Coroa",
+    "arquivo": "nivel_20_t04_coroa.svg",
+    "pontuacao_minima": 2864
+  },
+  {
+    "nivel": 21,
+    "tier": "Escudo",
+    "arquivo": "nivel_21_t05_escudo.svg",
+    "pontuacao_minima": 3334
+  },
+  {
+    "nivel": 22,
+    "tier": "Escudo",
+    "arquivo": "nivel_22_t05_escudo.svg",
+    "pontuacao_minima": 3853
+  },
+  {
+    "nivel": 23,
+    "tier": "Escudo",
+    "arquivo": "nivel_23_t05_escudo.svg",
+    "pontuacao_minima": 4422
+  },
+  {
+    "nivel": 24,
+    "tier": "Escudo",
+    "arquivo": "nivel_24_t05_escudo.svg",
+    "pontuacao_minima": 5046
+  },
+  {
+    "nivel": 25,
+    "tier": "Escudo",
+    "arquivo": "nivel_25_t05_escudo.svg",
+    "pontuacao_minima": 5725
+  },
+  {
+    "nivel": 26,
+    "tier": "Casa",
+    "arquivo": "nivel_26_t06_casa.svg",
+    "pontuacao_minima": 6463
+  },
+  {
+    "nivel": 27,
+    "tier": "Casa",
+    "arquivo": "nivel_27_t06_casa.svg",
+    "pontuacao_minima": 7261
+  },
+  {
+    "nivel": 28,
+    "tier": "Casa",
+    "arquivo": "nivel_28_t06_casa.svg",
+    "pontuacao_minima": 8122
+  },
+  {
+    "nivel": 29,
+    "tier": "Casa",
+    "arquivo": "nivel_29_t06_casa.svg",
+    "pontuacao_minima": 9049
+  },
+  {
+    "nivel": 30,
+    "tier": "Casa",
+    "arquivo": "nivel_30_t06_casa.svg",
+    "pontuacao_minima": 10044
+  },
+  {
+    "nivel": 31,
+    "tier": "Estrela",
+    "arquivo": "nivel_31_t07_estrela.svg",
+    "pontuacao_minima": 11109
+  },
+  {
+    "nivel": 32,
+    "tier": "Estrela",
+    "arquivo": "nivel_32_t07_estrela.svg",
+    "pontuacao_minima": 12247
+  },
+  {
+    "nivel": 33,
+    "tier": "Estrela",
+    "arquivo": "nivel_33_t07_estrela.svg",
+    "pontuacao_minima": 13460
+  },
+  {
+    "nivel": 34,
+    "tier": "Estrela",
+    "arquivo": "nivel_34_t07_estrela.svg",
+    "pontuacao_minima": 14750
+  },
+  {
+    "nivel": 35,
+    "tier": "Estrela",
+    "arquivo": "nivel_35_t07_estrela.svg",
+    "pontuacao_minima": 16121
+  },
+  {
+    "nivel": 36,
+    "tier": "Raio",
+    "arquivo": "nivel_36_t08_raio.svg",
+    "pontuacao_minima": 17573
+  },
+  {
+    "nivel": 37,
+    "tier": "Raio",
+    "arquivo": "nivel_37_t08_raio.svg",
+    "pontuacao_minima": 19111
+  },
+  {
+    "nivel": 38,
+    "tier": "Raio",
+    "arquivo": "nivel_38_t08_raio.svg",
+    "pontuacao_minima": 20735
+  },
+  {
+    "nivel": 39,
+    "tier": "Raio",
+    "arquivo": "nivel_39_t08_raio.svg",
+    "pontuacao_minima": 22449
+  },
+  {
+    "nivel": 40,
+    "tier": "Raio",
+    "arquivo": "nivel_40_t08_raio.svg",
+    "pontuacao_minima": 24255
+  },
+  {
+    "nivel": 41,
+    "tier": "Asa",
+    "arquivo": "nivel_41_t09_asa.svg",
+    "pontuacao_minima": 26156
+  },
+  {
+    "nivel": 42,
+    "tier": "Asa",
+    "arquivo": "nivel_42_t09_asa.svg",
+    "pontuacao_minima": 28153
+  },
+  {
+    "nivel": 43,
+    "tier": "Asa",
+    "arquivo": "nivel_43_t09_asa.svg",
+    "pontuacao_minima": 30249
+  },
+  {
+    "nivel": 44,
+    "tier": "Asa",
+    "arquivo": "nivel_44_t09_asa.svg",
+    "pontuacao_minima": 32447
+  },
+  {
+    "nivel": 45,
+    "tier": "Asa",
+    "arquivo": "nivel_45_t09_asa.svg",
+    "pontuacao_minima": 34748
+  },
+  {
+    "nivel": 46,
+    "tier": "Fênix",
+    "arquivo": "nivel_46_t10_fenix.svg",
+    "pontuacao_minima": 37156
+  },
+  {
+    "nivel": 47,
+    "tier": "Fênix",
+    "arquivo": "nivel_47_t10_fenix.svg",
+    "pontuacao_minima": 39673
+  },
+  {
+    "nivel": 48,
+    "tier": "Fênix",
+    "arquivo": "nivel_48_t10_fenix.svg",
+    "pontuacao_minima": 42301
+  },
+  {
+    "nivel": 49,
+    "tier": "Fênix",
+    "arquivo": "nivel_49_t10_fenix.svg",
+    "pontuacao_minima": 45042
+  },
+  {
+    "nivel": 50,
+    "tier": "Fênix",
+    "arquivo": "nivel_50_t10_fenix.svg",
+    "pontuacao_minima": 47899
+  },
+  {
+    "nivel": 51,
+    "tier": "Coroa Real",
+    "arquivo": "nivel_51_t11_coroa_real.svg",
+    "pontuacao_minima": 50875
+  },
+  {
+    "nivel": 52,
+    "tier": "Coroa Real",
+    "arquivo": "nivel_52_t11_coroa_real.svg",
+    "pontuacao_minima": 53971
+  },
+  {
+    "nivel": 53,
+    "tier": "Coroa Real",
+    "arquivo": "nivel_53_t11_coroa_real.svg",
+    "pontuacao_minima": 57190
+  },
+  {
+    "nivel": 54,
+    "tier": "Coroa Real",
+    "arquivo": "nivel_54_t11_coroa_real.svg",
+    "pontuacao_minima": 60535
+  },
+  {
+    "nivel": 55,
+    "tier": "Coroa Real",
+    "arquivo": "nivel_55_t11_coroa_real.svg",
+    "pontuacao_minima": 64008
+  }
+]

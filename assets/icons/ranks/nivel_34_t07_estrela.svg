@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad_nivel_34_t07_estrela" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d0fff2"/>
+      <stop offset="55%" stop-color="#65e8cd"/>
+      <stop offset="100%" stop-color="#1f6a5a"/>
+    </linearGradient>
+    <radialGradient id="bg_nivel_34_t07_estrela" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#1a2440"/>
+      <stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+    <filter id="shadow_nivel_34_t07_estrela" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#bg_nivel_34_t07_estrela)"/>
+  <g filter="url(#shadow_nivel_34_t07_estrela)">
+    <g fill="url(#grad_nivel_34_t07_estrela)" stroke="#101018" stroke-width="4" stroke-linejoin="round">
+      <path d="M50 6 L62 36 L94 38 L68 58 L78 90 L50 71 L22 90 L32 58 L6 38 L38 36 Z"/>
+    </g>
+    <ellipse cx="50" cy="34" rx="26" ry="14" fill="white" opacity="0.41"/>
+  </g>
+</svg>

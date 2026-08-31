@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad_nivel_02_t01_coracao" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd1d8"/>
+      <stop offset="55%" stop-color="#ff667b"/>
+      <stop offset="100%" stop-color="#7a1f2b"/>
+    </linearGradient>
+    <radialGradient id="bg_nivel_02_t01_coracao" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#1a2440"/>
+      <stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+    <filter id="shadow_nivel_02_t01_coracao" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#bg_nivel_02_t01_coracao)"/>
+  <g filter="url(#shadow_nivel_02_t01_coracao)">
+    <g fill="url(#grad_nivel_02_t01_coracao)" stroke="#101018" stroke-width="4" stroke-linejoin="round">
+      <path d="M50 88 C20 66 10 46 10 32 C10 16 24 6 38 10 C46 12 50 20 50 20 C50 20 54 12 62 10 C76 6 90 16 90 32 C90 46 80 66 50 88 Z"/>
+    </g>
+    <ellipse cx="50" cy="34" rx="26" ry="14" fill="white" opacity="0.24"/>
+  </g>
+</svg>

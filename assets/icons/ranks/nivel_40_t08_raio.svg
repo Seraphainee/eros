@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad_nivel_40_t08_raio" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dfe3ff"/>
+      <stop offset="55%" stop-color="#9faaff"/>
+      <stop offset="100%" stop-color="#3a3a8a"/>
+    </linearGradient>
+    <radialGradient id="bg_nivel_40_t08_raio" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#1a2440"/>
+      <stop offset="100%" stop-color="#05070f"/>
+    </radialGradient>
+    <filter id="shadow_nivel_40_t08_raio" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#bg_nivel_40_t08_raio)"/>
+  <g filter="url(#shadow_nivel_40_t08_raio)">
+    <g fill="url(#grad_nivel_40_t08_raio)" stroke="#101018" stroke-width="4" stroke-linejoin="round">
+      <path d="M58 4 L18 56 H42 L34 96 L82 40 H56 Z"/>
+    </g>
+    <ellipse cx="50" cy="34" rx="26" ry="14" fill="white" opacity="0.5"/>
+  </g>
+</svg>
