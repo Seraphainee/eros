@@ -13,6 +13,8 @@
 ///
 /// Implementação manual imutável — mesma estratégia dos outros
 /// models desta etapa.
+import '../core/constants/xp_constants.dart';
+
 enum ChannelType { text, voice }
 
 /// Quem pode falar em um canal de voz (irrelevante para canais de
@@ -56,6 +58,7 @@ class ChannelModel {
     this.voiceMode = VoiceMode.free,
     this.visibility = ChannelVisibility.public,
     this.passwordHash,
+    this.xpMultiplier = 1,
     required this.createdAt,
   });
 
@@ -93,6 +96,15 @@ class ChannelModel {
   /// `null` = canal sem senha.
   final String? passwordHash;
 
+  /// Multiplicador de XP concedido a quem está NESTE canal de voz
+  /// (ex: "XP 8x" visto na referência). 1 = sem bônus. Pensado para
+  /// ajudar quem não é VIP a compensar — o `XpService` aplica este
+  /// valor por cima do multiplicador de VIP do usuário (ver
+  /// `XpConstants` para a composição exata). Trava em
+  /// `XpConstants.maxRoomMultiplier` para evitar configuração
+  /// abusiva.
+  final int xpMultiplier;
+
   /// Quando o canal foi criado.
   final DateTime createdAt;
 
@@ -103,6 +115,10 @@ class ChannelModel {
   /// visíveis a todos — só a ENTRADA exige a senha (ou ser movido
   /// para dentro por um admin, fora do escopo deste model).
   bool get isPasswordProtected => passwordHash != null && passwordHash!.isNotEmpty;
+
+  /// Este canal concede XP acima do padrão (usado para exibir o
+  /// selo "XP Nx" na lista de canais).
+  bool get hasXpBoost => xpMultiplier > 1;
 
   ChannelModel copyWith({
     String? id,
@@ -115,6 +131,7 @@ class ChannelModel {
     ChannelVisibility? visibility,
     String? passwordHash,
     bool clearPassword = false,
+    int? xpMultiplier,
     DateTime? createdAt,
   }) {
     return ChannelModel(
@@ -128,6 +145,7 @@ class ChannelModel {
       visibility: visibility ?? this.visibility,
       passwordHash:
           clearPassword ? null : (passwordHash ?? this.passwordHash),
+      xpMultiplier: xpMultiplier ?? this.xpMultiplier,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -142,6 +160,7 @@ class ChannelModel {
         'voiceMode': voiceMode.name,
         'visibility': visibility.name,
         'passwordHash': passwordHash,
+        'xpMultiplier': xpMultiplier,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -164,6 +183,8 @@ class ChannelModel {
           orElse: () => ChannelVisibility.public,
         ),
         passwordHash: json['passwordHash'] as String?,
+        xpMultiplier: ((json['xpMultiplier'] as int?) ?? 1)
+            .clamp(1, XpConstants.maxRoomMultiplier),
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
 
@@ -180,14 +201,16 @@ class ChannelModel {
         other.voiceMode == voiceMode &&
         other.visibility == visibility &&
         other.passwordHash == passwordHash &&
+        other.xpMultiplier == xpMultiplier &&
         other.createdAt == createdAt;
   }
 
   @override
   int get hashCode => Object.hash(id, groupId, name, type, order,
-      permissionOverrides, voiceMode, visibility, passwordHash, createdAt);
+      permissionOverrides, voiceMode, visibility, passwordHash, xpMultiplier,
+      createdAt);
 
   @override
   String toString() =>
-      'ChannelModel(id: $id, groupId: $groupId, name: $name, type: $type, order: $order, isPasswordProtected: $isPasswordProtected)';
+      'ChannelModel(id: $id, groupId: $groupId, name: $name, type: $type, order: $order, isPasswordProtected: $isPasswordProtected, xpMultiplier: $xpMultiplier)';
 }
