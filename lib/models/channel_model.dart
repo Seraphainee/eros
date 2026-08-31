@@ -55,6 +55,7 @@ class ChannelModel {
     this.permissionOverrides = 0,
     this.voiceMode = VoiceMode.free,
     this.visibility = ChannelVisibility.public,
+    this.passwordHash,
     required this.createdAt,
   });
 
@@ -84,11 +85,24 @@ class ChannelModel {
   /// Quem pode ver/acessar o canal.
   final ChannelVisibility visibility;
 
+  /// Hash (SHA-256) da senha do canal, se protegido. NUNCA armazena
+  /// a senha em texto puro — o documento `channels/{id}` é legível
+  /// por qualquer membro do grupo (para exibir nome/lista mesmo sem
+  /// acesso), então apenas o hash fica público. A verificação da
+  /// senha digitada compara `sha256(digitada) == passwordHash`.
+  /// `null` = canal sem senha.
+  final String? passwordHash;
+
   /// Quando o canal foi criado.
   final DateTime createdAt;
 
   bool get isText => type == ChannelType.text;
   bool get isVoice => type == ChannelType.voice;
+
+  /// Canal protegido por senha. O nome e "quem está dentro" continuam
+  /// visíveis a todos — só a ENTRADA exige a senha (ou ser movido
+  /// para dentro por um admin, fora do escopo deste model).
+  bool get isPasswordProtected => passwordHash != null && passwordHash!.isNotEmpty;
 
   ChannelModel copyWith({
     String? id,
@@ -99,6 +113,8 @@ class ChannelModel {
     int? permissionOverrides,
     VoiceMode? voiceMode,
     ChannelVisibility? visibility,
+    String? passwordHash,
+    bool clearPassword = false,
     DateTime? createdAt,
   }) {
     return ChannelModel(
@@ -110,6 +126,8 @@ class ChannelModel {
       permissionOverrides: permissionOverrides ?? this.permissionOverrides,
       voiceMode: voiceMode ?? this.voiceMode,
       visibility: visibility ?? this.visibility,
+      passwordHash:
+          clearPassword ? null : (passwordHash ?? this.passwordHash),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -123,6 +141,7 @@ class ChannelModel {
         'permissionOverrides': permissionOverrides,
         'voiceMode': voiceMode.name,
         'visibility': visibility.name,
+        'passwordHash': passwordHash,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -144,6 +163,7 @@ class ChannelModel {
           (e) => e.name == json['visibility'],
           orElse: () => ChannelVisibility.public,
         ),
+        passwordHash: json['passwordHash'] as String?,
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
 
@@ -159,14 +179,15 @@ class ChannelModel {
         other.permissionOverrides == permissionOverrides &&
         other.voiceMode == voiceMode &&
         other.visibility == visibility &&
+        other.passwordHash == passwordHash &&
         other.createdAt == createdAt;
   }
 
   @override
   int get hashCode => Object.hash(id, groupId, name, type, order,
-      permissionOverrides, voiceMode, visibility, createdAt);
+      permissionOverrides, voiceMode, visibility, passwordHash, createdAt);
 
   @override
   String toString() =>
-      'ChannelModel(id: $id, groupId: $groupId, name: $name, type: $type, order: $order)';
+      'ChannelModel(id: $id, groupId: $groupId, name: $name, type: $type, order: $order, isPasswordProtected: $isPasswordProtected)';
 }
