@@ -14,6 +14,7 @@ import 'core/widgets/app_splash_screen.dart';
 import 'providers/auth_provider.dart';
 import 'providers/group_provider.dart';
 import 'providers/voice_room_provider.dart';
+import 'providers/xp_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -118,6 +119,10 @@ class _AuthGateState extends ConsumerState<_AuthGate> {
       return const AppSplashScreen();
     }
     if (state.isAuthenticated) {
+      // Mantém o heartbeat de XP vivo durante toda a sessão
+      // autenticada — para automaticamente quando o usuário faz
+      // logout (este widget é desmontado e o provider é descartado).
+      ref.watch(xpHeartbeatProvider);
       return const HomeScreen();
     }
     if (_showRegister) {
