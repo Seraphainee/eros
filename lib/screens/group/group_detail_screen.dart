@@ -5,8 +5,9 @@
 /// e os botões Curtir/Favoritar (visíveis a QUALQUER membro). Abaixo,
 /// a lista de canais (texto e voz) com contagem de presença ao vivo e
 /// avatares de quem está na chamada — inclusive em canais protegidos
-/// por senha, que mostram um cadeado mas continuam listando quem
-/// está dentro para qualquer pessoa (dono, membro ou visitante).
+/// por senha, que mostram um cadeado e continuam listando quem está
+/// dentro para qualquer pessoa (dono, membro ou visitante), mas
+/// pedem senha antes de deixar ENTRAR (o dono sempre entra livre).
 ///
 /// O menu (⋮) sempre aparece, mas o CONTEÚDO muda por papel:
 /// - Qualquer membro: Enquete (votar; criar é exclusivo de dono/admin,
@@ -361,6 +362,133 @@ class _ChannelListSection extends ConsumerWidget {
 
   final String groupId;
 
+  /// Trata o toque num canal: se for de texto, abre direto. Se for
+  /// de voz e tiver senha, pede a senha antes (exceto para o dono,
+  /// que sempre entra livre). Se a senha bater ou não houver senha,
+  /// navega para a sala.
+  Future<void> _handleChannelTap({
+    required BuildContext context,
+    required WidgetRef ref,
+    required ChannelModel channel,
+  }) async {
+    ref.read(selectedChannelIdProvider.notifier).state = channel.id;
+
+    if (channel.isText) {
+      Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => TextChannelScreen(
+            groupId: groupId,
+            channelId: channel.id,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Canal de voz. Verifica se precisa de senha.
+    if (channel.isPasswordProtected) {
+      final group = await ref.read(groupStreamProvider(groupId).future);
+      final uid = ref.read(currentUserIdProvider);
+      final isOwner = group != null && uid != null && group.ownerId == uid;
+
+      if (!isOwner) {
+        if (!context.mounted) return;
+        final entered = await _promptPassword(context, ref, channel);
+        if (entered != true) return; // usuário cancelou ou senha errada
+      }
+    }
+
+    if (!context.mounted) return;
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => VoiceRoomScreen(
+          groupId: groupId,
+          channelId: channel.id,
+          channelName: channel.name,
+        ),
+      ),
+    );
+  }
+
+  /// Mostra o diálogo de senha. Retorna `true` se a senha digitada
+  /// bateu (usuário pode entrar), `false`/`null` caso contrário.
+  Future<bool?> _promptPassword(
+    BuildContext context,
+    WidgetRef ref,
+    ChannelModel channel,
+  ) {
+    final controller = TextEditingController();
+    String? errorText;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF16161D),
+              title: Row(
+                children: <Widget>[
+                  const Icon(Icons.lock, color: Colors.white70, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Canal protegido: ${channel.name}',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              content: TextField(
+                controller: controller,
+                obscureText: true,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Digite a senha do canal',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  errorText: errorText,
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                ),
+                onSubmitted: (_) {
+                  final ok = ref
+                      .read(channelServiceProvider)
+                      .verifyPassword(channel, controller.text);
+                  if (ok) {
+                    Navigator.of(dialogContext).pop(true);
+                  } else {
+                    setState(() => errorText = 'Senha incorreta.');
+                  }
+                },
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final ok = ref
+                        .read(channelServiceProvider)
+                        .verifyPassword(channel, controller.text);
+                    if (ok) {
+                      Navigator.of(dialogContext).pop(true);
+                    } else {
+                      setState(() => errorText = 'Senha incorreta.');
+                    }
+                  },
+                  child: const Text('Entrar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final channelsAsync = ref.watch(channelsStreamProvider(groupId));
@@ -417,30 +545,11 @@ class _ChannelListSection extends ConsumerWidget {
                       groupId: groupId,
                       channel: channels[i],
                       selected: channels[i].id == selectedChannelId,
-                      onTap: () {
-                        ref.read(selectedChannelIdProvider.notifier).state =
-                            channels[i].id;
-                        if (channels[i].isText) {
-                          Navigator.of(context).push<void>(
-                            MaterialPageRoute<void>(
-                              builder: (_) => TextChannelScreen(
-                                groupId: groupId,
-                                channelId: channels[i].id,
-                              ),
-                            ),
-                          );
-                        } else {
-                          Navigator.of(context).push<void>(
-                            MaterialPageRoute<void>(
-                              builder: (_) => VoiceRoomScreen(
-                                groupId: groupId,
-                                channelId: channels[i].id,
-                                channelName: channels[i].name,
-                              ),
-                            ),
-                          );
-                        }
-                      },
+                      onTap: () => _handleChannelTap(
+                        context: context,
+                        ref: ref,
+                        channel: channels[i],
+                      ),
                     ),
                     if (i != channels.length - 1)
                       const Divider(height: 1, color: Color(0xFF222229)),
